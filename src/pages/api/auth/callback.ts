@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
-const CLIENT_ID = '33981';
-const CLIENT_SECRET = 'muQVGDTz3mSoYlnJRIGC8KHpwvhtgnlS4GAARxXl';
+const CLIENT_ID = '33989';
+const CLIENT_SECRET = 'A2y4zS8gorAxbZnPqDnvwmlLvmqrRXC6NAGpFUlg';
 const REDIRECT_URI = 'https://vylos-anime.vercel.app/api/auth/callback';
 
 export const GET: APIRoute = async ({ request, cookies, redirect }) => {

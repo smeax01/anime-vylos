@@ -11,14 +11,11 @@ const animeId = Number(id);
 let anime = null;
 try {
   anime = await getAnimeById(animeId);
-} catch (e) {
-  console.error(e);
-}
+} catch (e) {}
 
 if (!anime) return Astro.redirect("/404");
 
 const title = anime.title.romaji || anime.title.english;
-// Filter relations to show other seasons and sequels
 const relations =
   anime.relations?.edges?.filter((e) => e.node.type === "ANIME") || [];
 ---
@@ -38,80 +35,60 @@ const relations =
       >
         <div class="loading-overlay hidden" id="loading-overlay">
           <div class="spinner"></div>
-          <span>Recherche des sources...</span>
+          <span>Initialisation du flux...</span>
         </div>
         <button
           id="start-btn"
           class="play-btn-large"
           data-id={anime.id}
           data-title={title}
+          data-max-ep={anime.episodes}
         >
           <Play fill="currentColor" size={32} />
-          <span>Lancer la lecture</span>
+          <span>Lancer l'épisode 1</span>
         </button>
       </div>
       <div id="fallback-ui" class="hidden fallback-ui">
-        <h3 style="color:#ef4444;">
-          Impossible de lire la vidéo directement 😕
-        </h3>
-        <p>
-          Les serveurs de streaming gratuits sont instables. Utilisez un lien
-          externe :
-        </p>
+        <h3>Source interne indisponible 😕</h3>
+        <p>Utilisez un lecteur externe sécurisé pour cet anime :</p>
         <div class="fallback-actions">
-          <a
-            href={`https://anitaku.to/search.html?keyword=${encodeURIComponent(title)}`}
-            target="_blank"
-            class="btn-alt">GogoAnime</a
-          >
-          <a
-            href={`https://hianime.to/search?keyword=${encodeURIComponent(title)}`}
-            target="_blank"
-            class="btn-alt">HiAnime</a
-          >
+          <a id="fb-gogo" href="#" target="_blank" class="btn-alt">GogoAnime</a>
+          <a id="fb-hi" href="#" target="_blank" class="btn-alt">HiAnime</a>
         </div>
       </div>
       <video id="player" controls crossorigin playsinline></video>
     </div>
 
     <div class="container info-section">
-      <div class="main-info">
-        <h1 class="anime-title">{title}</h1>
-        <div class="meta-row">
-          <span class="meta-tag rating"
-            >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
-          >
-          <span class="meta-tag status">{anime.status}</span>
-          <span class="meta-tag">{anime.episodes || "?"} Eps</span>
-          <span class="meta-tag">{anime.format}</span>
-        </div>
-        <p class="description" set:html={anime.description} />
+      <h1 class="anime-title">{title}</h1>
+      <div class="meta-row">
+        <span class="meta-tag rating"
+          >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
+        >
+        <span class="meta-tag">{anime.status}</span>
+        <span class="meta-tag">{anime.episodes || "?"} Eps</span>
+        <span class="meta-tag">{anime.format}</span>
       </div>
+      <p class="description" set:html={anime.description} />
 
-      <!-- Genres -->
-      <div class="genres">
-        {anime.genres?.map((g) => <span class="genre-pill">{g}</span>)}
-      </div>
-
-      <!-- Saisons / Relations -->
       {
         relations.length > 0 && (
           <div class="relations-section">
             <h3 class="section-header">
               <Layers size={18} /> Saisons & Suites
             </h3>
-            <div class="relations-grid">
+            <div class="relations-scroll">
               {relations.map((rel) => (
                 <a href={`/anime/${rel.node.id}`} class="rel-card">
-                  <div class="rel-img">
-                    <img
-                      src={rel.node.coverImage.medium}
-                      alt={rel.node.title.romaji}
-                      loading="lazy"
-                    />
-                    <div class="rel-badge">{rel.relationType}</div>
+                  <img
+                    src={rel.node.coverImage.medium}
+                    alt={rel.node.title.romaji}
+                    loading="lazy"
+                  />
+                  <div class="rel-info">
+                    <span class="rel-type">{rel.relationType}</span>
+                    <span class="rel-title">{rel.node.title.romaji}</span>
                   </div>
-                  <div class="rel-title">{rel.node.title.romaji}</div>
                 </a>
               ))}
             </div>
@@ -119,10 +96,9 @@ const relations =
         )
       }
 
-      <!-- Liste des épisodes -->
       <h3 class="section-header">Épisodes</h3>
       <div id="episodes-grid" class="episodes-grid">
-        <div class="loading-eps">Chargement des épisodes...</div>
+        <div class="loading-eps">Recherche des épisodes...</div>
       </div>
     </div>
   </div>
@@ -139,93 +115,93 @@ const relations =
   const placeholder = document.getElementById("player-placeholder");
   const fallbackUI = document.getElementById("fallback-ui");
   const episodesGrid = document.getElementById("episodes-grid");
-  let player: Plyr;
 
+  const fbGogo = document.getElementById("fb-gogo") as HTMLAnchorElement;
+  const fbHi = document.getElementById("fb-hi") as HTMLAnchorElement;
+
+  let player: Plyr;
   const animeId = startBtn?.dataset.id;
   const animeTitle = startBtn?.dataset.title;
+  const maxEp = Number(startBtn?.dataset.maxEp || 12);
 
-  // List of public API instances to try
-  const API_INSTANCES = [
-    "https://api-consumet.vercel.app",
-    "https://consumet-api-nine.vercel.app",
-    "https://api.consumet.org",
-  ];
+  // Fallback links
+  const updateFallbacks = (epNum = 1) => {
+    fbGogo.href = `https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}`;
+    fbHi.href = `https://hianime.to/search?keyword=${encodeURIComponent(animeTitle!)}`;
+  };
 
-  async function fetchWithFallback(path: string) {
-    for (const api of API_INSTANCES) {
-      try {
-        const res = await fetch(`${api}${path}`);
-        if (res.ok) return await res.json();
-      } catch (e) {
-        console.warn(`API ${api} failed, trying next...`);
-      }
-    }
-    throw new Error("All API instances failed");
-  }
-
-  async function init() {
+  async function fetchAnimeInfo() {
     if (!animeId) return;
     loadingOverlay?.classList.remove("hidden");
+    updateFallbacks(1);
 
     try {
-      // Search for episodes
-      let data;
-      try {
-        data = await fetchWithFallback(`/meta/anilist/info/${animeId}`);
-      } catch (e) {
-        // Fallback to title search if ID mapping fails
-        const search = await fetchWithFallback(
-          `/meta/anilist/${encodeURIComponent(animeTitle!)}`
-        );
-        if (search.results && search.results.length > 0) {
-          data = await fetchWithFallback(
-            `/meta/anilist/info/${search.results[0].id}`
-          );
-        }
-      }
+      const res = await fetch(
+        `https://api-consumet.vercel.app/meta/anilist/info/${animeId}`
+      );
+      const data = await res.json();
 
-      if (data && data.episodes && data.episodes.length > 0) {
+      if (data.episodes && data.episodes.length > 0) {
         renderEpisodes(data.episodes);
       } else {
-        throw new Error("No episodes");
+        throw new Error("No episodes in API");
       }
     } catch (e) {
-      console.error(e);
-      episodesGrid!.innerHTML =
-        '<div class="error-eps">Flux temporairement indisponible. Utilisez les liens externes.</div>';
+      console.warn("API direct ID failed, using manual episode generation.");
+      generateManualEpisodes();
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function renderEpisodes(episodes: any[]) {
+  function generateManualEpisodes() {
     episodesGrid!.innerHTML = "";
-    episodes.forEach((ep: any) => {
-      const btn = document.createElement("button");
-      btn.className = "episode-card";
-      btn.onclick = () => loadEpisode(ep.id);
-      btn.innerHTML = `
-             <div class="ep-thumb">
-                ${ep.image ? `<img src="${ep.image}" />` : `<div class="no-img">${ep.number}</div>`}
-             </div>
-             <div class="ep-info">
-               <span class="ep-num">Épisode ${ep.number}</span>
-               <span class="ep-title">${ep.title || `Épisode ${ep.number}`}</span>
-             </div>
-          `;
-      episodesGrid!.appendChild(btn);
-    });
-    if (startBtn) startBtn.onclick = () => loadEpisode(episodes[0].id);
+    const episodes = [];
+    for (let i = 1; i <= maxEp; i++) {
+      episodes.push({
+        id: `${animeTitle}-episode-${i}`,
+        number: i,
+        title: `Épisode ${i}`,
+      });
+    }
+    renderEpisodes(episodes, true);
   }
 
-  async function loadEpisode(episodeId: string) {
+  function renderEpisodes(episodes: any[], isManual = false) {
+    episodesGrid!.innerHTML = "";
+    episodes.forEach((ep) => {
+      const btn = document.createElement("button");
+      btn.className = "episode-card";
+      btn.onclick = () =>
+        isManual ? showFallback() : loadEpisode(ep.id, ep.number);
+      btn.innerHTML = `
+        <div class="ep-thumb"><div class="no-img">${ep.number}</div></div>
+        <div class="ep-info">
+          <span class="ep-num">Épisode ${ep.number}</span>
+          <span class="ep-title">${ep.title || `Épisode ${ep.number}`}</span>
+        </div>
+      `;
+      episodesGrid!.appendChild(btn);
+    });
+
+    if (startBtn) {
+      startBtn.onclick = () =>
+        isManual ? showFallback() : loadEpisode(episodes[0].id, 1);
+    }
+  }
+
+  async function loadEpisode(id: string, num: number) {
     placeholder!.style.display = "flex";
     loadingOverlay?.classList.remove("hidden");
     fallbackUI?.classList.add("hidden");
     video.style.display = "none";
+    updateFallbacks(num);
 
     try {
-      const data = await fetchWithFallback(`/meta/anilist/watch/${episodeId}`);
+      const res = await fetch(
+        `https://api-consumet.vercel.app/meta/anilist/watch/${id}`
+      );
+      const data = await res.json();
       const source =
         data.sources?.find(
           (s: any) => s.quality === "1080p" || s.quality === "720p"
@@ -236,10 +212,9 @@ const relations =
         placeholder!.style.display = "none";
         video.style.display = "block";
       } else {
-        throw new Error("No stream");
+        throw new Error();
       }
     } catch (e) {
-      console.error(e);
       showFallback();
     } finally {
       loadingOverlay?.classList.add("hidden");
@@ -250,18 +225,17 @@ const relations =
     placeholder!.style.display = "none";
     video.style.display = "none";
     fallbackUI?.classList.remove("hidden");
+    loadingOverlay?.classList.add("hidden");
   }
 
-  function setupPlayer(sourceUrl: string, isHls: boolean) {
+  function setupPlayer(url: string, isHls: boolean) {
     if (player) player.destroy();
     if (isHls && Hls.isSupported()) {
       const hls = new Hls();
-      hls.loadSource(sourceUrl);
+      hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
     } else {
-      video.src = sourceUrl;
-      video.play().catch(() => {});
+      video.src = url;
     }
     player = new Plyr(video, {
       controls: [
@@ -274,11 +248,11 @@ const relations =
         "fullscreen",
         "settings",
       ],
-      settings: ["quality"],
     });
+    video.play().catch(() => {});
   }
 
-  init();
+  fetchAnimeInfo();
 </script>
 
 <style>
@@ -286,9 +260,8 @@ const relations =
     display: none !important;
   }
   .player-page {
-    padding-bottom: 120px;
+    padding-bottom: 100px;
   }
-
   .top-nav {
     position: absolute;
     top: 0;
@@ -305,7 +278,6 @@ const relations =
       transparent 100%
     );
   }
-
   .back-btn {
     color: white;
     background: rgba(255, 255, 255, 0.1);
@@ -313,6 +285,13 @@ const relations =
     border-radius: var(--radius-md);
     display: flex;
     backdrop-filter: blur(4px);
+  }
+  .nav-title {
+    font-weight: 600;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .video-container {
@@ -330,15 +309,25 @@ const relations =
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #0f172a;
   }
   .placeholder::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
   }
 
+  .loading-overlay {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: white;
+  }
   .spinner {
     width: 30px;
     height: 30px;
@@ -362,193 +351,165 @@ const relations =
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 2rem;
     text-align: center;
   }
   .btn-alt {
     background: var(--color-primary);
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.6rem 1.2rem;
     border-radius: var(--radius-md);
     text-decoration: none;
     font-weight: 700;
-    transition: transform 0.2s;
-  }
-  .btn-alt:hover {
-    transform: scale(1.1);
+    font-size: 0.9rem;
   }
 
   .info-section {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
   }
   .anime-title {
-    font-size: 1.8rem;
-    font-weight: 900;
+    font-size: 1.6rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
   }
   .meta-row {
     display: flex;
     gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
   .meta-tag {
     background: #1e293b;
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-sm);
-    color: #94a3b8;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
   }
-  .rating {
-    color: #fbbf24;
-    font-weight: bold;
-  }
-
   .description {
-    color: #cbd5e1;
-    line-height: 1.7;
-    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    font-size: 0.9rem;
     margin-bottom: 2rem;
-    max-height: 200px;
+    height: 100px;
     overflow-y: auto;
-    padding-right: 0.5rem;
   }
 
-  .genres {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 3rem;
-  }
-  .genre-pill {
-    color: var(--color-accent);
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: rgba(56, 189, 248, 0.1);
-    padding: 4px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(56, 189, 248, 0.2);
-  }
-
-  /* Saisons */
   .relations-section {
-    margin-bottom: 3rem;
+    margin: 2rem 0;
   }
-  .relations-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  .relations-scroll {
+    display: flex;
     gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
   }
   .rel-card {
+    flex: 0 0 120px;
     text-decoration: none;
-    transition: transform 0.2s;
-  }
-  .rel-card:hover {
-    transform: translateY(-5px);
-  }
-  .rel-img {
-    position: relative;
-    aspect-ratio: 2/3;
-    border-radius: var(--radius-md);
+    background: #1e293b;
+    border-radius: 8px;
     overflow: hidden;
-    margin-bottom: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
-  .rel-img img {
+  .rel-card img {
     width: 100%;
-    height: 100%;
+    height: 150px;
     object-fit: cover;
   }
-  .rel-badge {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 4px;
-    background: rgba(0, 0, 0, 0.8);
-    color: var(--color-primary);
+  .rel-info {
+    padding: 0.5rem;
+  }
+  .rel-type {
     font-size: 0.6rem;
-    font-weight: 800;
-    text-align: center;
+    color: var(--color-primary);
+    font-weight: bold;
     text-transform: uppercase;
+    display: block;
   }
   .rel-title {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.75rem;
     color: white;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    font-weight: 600;
+    white-space: nowrap;
     overflow: hidden;
-    line-height: 1.3;
+    text-overflow: ellipsis;
+    display: block;
   }
 
   .section-header {
-    font-size: 1.3rem;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--color-primary);
+    padding-left: 0.75rem;
   }
-
   .episodes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
   }
   :global(.episode-card) {
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     overflow: hidden;
+    padding: 0;
     cursor: pointer;
     text-align: left;
-    padding: 0;
-    transition: border-color 0.2s;
   }
   :global(.episode-card:hover) {
     border-color: var(--color-primary);
   }
-  :global(.ep-thumb) {
+  :global(.no-img) {
     aspect-ratio: 16/9;
-    background: #0f172a;
-    position: relative;
-  }
-  :global(.ep-thumb img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.8;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #334155;
   }
   :global(.ep-info) {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
   :global(.ep-num) {
     font-size: 0.7rem;
-    color: var(--color-primary);
-    font-weight: 700;
-    text-transform: uppercase;
+    color: #64748b;
   }
   :global(.ep-title) {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: white;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-top: 2px;
   }
 
-  .error-eps {
+  .loading-eps {
     padding: 2rem;
-    color: #ef4444;
-    font-weight: 600;
     text-align: center;
+    color: var(--color-text-muted);
+    width: 100%;
     grid-column: 1/-1;
-    background: rgba(239, 68, 68, 0.05);
+  }
+
+  .play-btn-large {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
     border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
   }
 </style>

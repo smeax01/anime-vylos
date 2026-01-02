@@ -1,8 +1,7 @@
 ---
-import { Home, Search, Heart, User } from "lucide-astro";
+import { Home, Search, Heart, User, LifeBuoy } from "lucide-astro";
 import Logo from "./Logo.astro";
 
-// Authenticated User Avatar Fetch logic
 const token = Astro.cookies.get("anilist_token")?.value;
 let userAvatar = null;
 
@@ -19,9 +18,7 @@ if (token) {
     });
     const data = await res.json();
     userAvatar = data.data?.Viewer?.avatar?.large;
-  } catch (e) {
-    // Silent fail
-  }
+  } catch (e) {}
 }
 ---
 
@@ -34,14 +31,20 @@ if (token) {
         <a href="/" class="nav-link">Accueil</a>
         <a href="/search" class="nav-link">Parcourir</a>
         <a href="/favorites" class="nav-link">Favoris</a>
+        <a href="/support" class="nav-link support-link">Support</a>
       </nav>
     </div>
 
     <div class="nav-right">
-      <a href="/search" class="search-trigger">
-        <Search size={20} class="text-muted" />
-        <span>Rechercher...</span>
-      </a>
+      <form action="/search" method="get" class="search-trigger">
+        <Search size={18} class="text-muted" />
+        <input
+          type="text"
+          name="q"
+          placeholder="Rechercher..."
+          class="nav-search-input"
+        />
+      </form>
       <a href="/profile" class="profile-btn">
         {
           userAvatar ? (
@@ -70,9 +73,9 @@ if (token) {
       <Logo scale={0.6} />
     </div>
   </div>
-  <a href="/favorites" class="mobile-link">
-    <Heart size={24} />
-    <span>Favoris</span>
+  <a href="/support" class="mobile-link">
+    <LifeBuoy size={24} />
+    <span>Aide</span>
   </a>
   <a href="/profile" class="mobile-link">
     {
@@ -87,28 +90,25 @@ if (token) {
 </nav>
 
 <style>
-  /* --- Desktop Styles --- */
   .navbar-desktop {
-    display: none; /* Hidden on mobile by default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: var(--nav-height-desktop);
-    background: rgba(2, 6, 23, 0.9); /* Dark Blue */
+    background: rgba(2, 6, 23, 0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 1000;
   }
-
-  /* --- Mobile Styles --- */
   .navbar-mobile {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     height: var(--nav-height-mobile);
-    background: #0f172a; /* Slate 900 */
+    background: #0f172a;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-around;
@@ -126,16 +126,12 @@ if (token) {
     font-size: 10px;
     font-weight: 500;
     width: 60px;
-    transition: color 0.2s;
     text-decoration: none;
   }
-
-  .mobile-link:hover,
-  .mobile-link:focus {
+  .mobile-link:hover {
     color: var(--color-primary);
   }
 
-  /* Center Logo Bump on Mobile */
   .mobile-link-highlight-wrapper {
     position: relative;
     top: -15px;
@@ -143,26 +139,22 @@ if (token) {
     display: flex;
     justify-content: center;
   }
-
   .mobile-link-highlight {
     width: 48px;
     height: 48px;
     background: var(--color-primary);
-    border-radius: var(--radius-md); /* SQUARE LOOK */
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
     border: 3px solid var(--color-bg-main);
-    transform: rotate(45deg); /* Diamond shape */
+    transform: rotate(45deg);
   }
-
-  /* Un-rotate logo inside so it's upright */
   .mobile-link-highlight :global(svg) {
     transform: rotate(-45deg) scale(0.5);
   }
 
-  /* Responsive Logic */
   @media (min-width: 768px) {
     .navbar-desktop {
       display: block;
@@ -172,34 +164,37 @@ if (token) {
     }
   }
 
-  /* Desktop Inner Layout */
   .navbar-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 100%;
   }
-
   .nav-left {
     display: flex;
     align-items: center;
     gap: 3rem;
   }
-
   .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
   }
-
   .nav-link {
     color: var(--color-text-muted);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     text-decoration: none;
+    transition: color 0.2s;
   }
-
   .nav-link:hover {
-    color: var(--color-text-main);
+    color: white;
+  }
+  .support-link {
+    color: var(--color-accent);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-sm);
+    background: rgba(56, 189, 248, 0.05);
   }
 
   .nav-right {
@@ -207,46 +202,44 @@ if (token) {
     align-items: center;
     gap: 1.5rem;
   }
-
   .search-trigger {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md); /* SQUARE LOOK */
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .nav-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 0.85rem;
+    width: 120px;
   }
 
   .profile-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     background: var(--color-primary);
-    border-radius: var(--radius-md); /* SQUARE LOOK */
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     overflow: hidden;
   }
-
   .avatar-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-
   .avatar-img-mobile {
     width: 24px;
     height: 24px;
-    border-radius: 50%; /* Keep round for small icon or square? User said square buttons, but avatar is usually round. Let's keep it consistent with icon size */
+    border-radius: 4px;
     object-fit: cover;
-  }
-
-  .text-muted {
-    color: var(--color-text-muted);
   }
 </style>

@@ -28,6 +28,7 @@ const relations =
     </div>
 
     <div class="video-container" id="video-wrapper">
+      <!-- Placeholder / Loading -->
       <div
         id="player-placeholder"
         class="placeholder"
@@ -35,7 +36,7 @@ const relations =
       >
         <div class="loading-overlay hidden" id="loading-overlay">
           <div class="spinner"></div>
-          <span id="loading-text">Recherche des épisodes...</span>
+          <span id="loading-text">Recherche du flux...</span>
         </div>
         <button
           id="start-btn"
@@ -48,22 +49,17 @@ const relations =
           <span>Lancer la lecture</span>
         </button>
       </div>
-      <div id="fallback-ui" class="hidden fallback-ui">
-        <h3>Source interne introuvable 😕</h3>
-        <p>
-          Cet anime (ou cet épisode) n'est pas disponible sur nos serveurs
-          directs.
-        </p>
-        <div class="fallback-actions">
-          <a id="fb-gogo" href="#" target="_blank" class="btn-alt"
-            >Regarder sur GogoAnime</a
-          >
-          <a id="fb-hi" href="#" target="_blank" class="btn-alt"
-            >Regarder sur HiAnime</a
-          >
-        </div>
-      </div>
+
+      <!-- Lecteur Direct (Plyr) -->
       <video id="player" controls crossorigin playsinline></video>
+
+      <!-- Lecteur Embed (Fallback interne) -->
+      <iframe
+        id="player-embed"
+        class="hidden"
+        frameborder="0"
+        allowfullscreen
+        allow="autoplay; encrypted-media"></iframe>
     </div>
 
     <div class="container info-section">
@@ -105,7 +101,7 @@ const relations =
 
       <h3 class="section-header">Épisodes</h3>
       <div id="episodes-grid" class="episodes-grid">
-        <div class="loading-eps">Chargement des données...</div>
+        <div class="loading-eps">Chargement...</div>
       </div>
     </div>
   </div>
@@ -117,15 +113,12 @@ const relations =
   import "plyr/dist/plyr.css";
 
   const video = document.getElementById("player") as HTMLVideoElement;
+  const embed = document.getElementById("player-embed") as HTMLIFrameElement;
   const startBtn = document.getElementById("start-btn");
   const loadingOverlay = document.getElementById("loading-overlay");
   const loadingText = document.getElementById("loading-text");
   const placeholder = document.getElementById("player-placeholder");
-  const fallbackUI = document.getElementById("fallback-ui");
   const episodesGrid = document.getElementById("episodes-grid");
-
-  const fbGogo = document.getElementById("fb-gogo") as HTMLAnchorElement;
-  const fbHi = document.getElementById("fb-hi") as HTMLAnchorElement;
 
   let player: Plyr;
   const animeId = startBtn?.dataset.id;
@@ -134,46 +127,46 @@ const relations =
 
   const API_BASE = "https://api-consumet.vercel.app";
 
-  // State to store which provider we are using
-  let currentEpisodes: any[] = [];
+  async function fetchWithFallback(path: string) {
+    const instances = [
+      "https://api-consumet.vercel.app",
+      "https://consumet-api-nine.vercel.app",
+      "https://api-consumet-org.vercel.app",
+    ];
+    for (const base of instances) {
+      try {
+        const res = await fetch(`${base}${path}`);
+        if (res.ok) return await res.json();
+      } catch (e) {}
+    }
+    throw new Error("API fail");
+  }
 
   async function fetchEpisodes() {
     if (!animeId) return;
     loadingOverlay?.classList.remove("hidden");
 
     try {
-      // 1. Try Meta AniList (Most accurate)
-      loadingText!.innerText = "Sync avec AniList...";
-      const res = await fetch(`${API_BASE}/meta/anilist/info/${animeId}`);
-      const data = await res.json();
+      loadingText!.innerText = "Recherche des épisodes...";
+      const data = await fetchWithFallback(`/meta/anilist/info/${animeId}`);
 
       if (data.episodes && data.episodes.length > 0) {
-        currentEpisodes = data.episodes;
+        renderEpisodes(data.episodes);
       } else {
-        // 2. Try Title Search with Provider GogoAnime
-        loadingText!.innerText = "Recherche via GogoAnime...";
-        const searchRes = await fetch(
-          `${API_BASE}/anime/gogoanime/${encodeURIComponent(animeTitle!)}`
+        // Try Gogo search directly
+        const search = await fetchWithFallback(
+          `/anime/gogoanime/${encodeURIComponent(animeTitle!)}`
         );
-        const searchData = await searchRes.json();
-        if (searchData.results && searchData.results.length > 0) {
-          const infoRes = await fetch(
-            `${API_BASE}/anime/gogoanime/info/${searchData.results[0].id}`
+        if (search.results && search.results.length > 0) {
+          const info = await fetchWithFallback(
+            `/anime/gogoanime/info/${search.results[0].id}`
           );
-          const infoData = await infoRes.json();
-          currentEpisodes = infoData.episodes;
+          renderEpisodes(info.episodes);
+        } else {
+          throw new Error();
         }
       }
-
-      if (currentEpisodes.length > 0) {
-        renderEpisodes(currentEpisodes);
-      } else {
-        throw new Error("No episodes found anywhere");
-      }
     } catch (e) {
-      console.warn(
-        "Internal search failed, providing manual list for external playback."
-      );
       renderManualEpisodes();
     } finally {
       loadingOverlay?.classList.add("hidden");
@@ -184,18 +177,17 @@ const relations =
     const list = [];
     const count = maxEpCount > 0 ? maxEpCount : 12;
     for (let i = 1; i <= count; i++) {
-      list.push({ id: `manual-${i}`, number: i, title: `Épisode ${i}` });
+      list.push({ id: null, number: i, title: `Épisode ${i}` });
     }
-    renderEpisodes(list, true);
+    renderEpisodes(list);
   }
 
-  function renderEpisodes(episodes: any[], isManual = false) {
+  function renderEpisodes(episodes: any[]) {
     episodesGrid!.innerHTML = "";
     episodes.forEach((ep) => {
       const btn = document.createElement("button");
       btn.className = "episode-card";
-      btn.onclick = () =>
-        isManual ? showFallback(ep.number) : loadEpisode(ep.id, ep.number);
+      btn.onclick = () => loadEpisode(ep.id, ep.number);
       btn.innerHTML = `
         <div class="ep-thumb"><div class="no-img">${ep.number}</div></div>
         <div class="ep-info">
@@ -207,24 +199,28 @@ const relations =
     });
 
     if (startBtn) {
-      startBtn.onclick = () =>
-        isManual ? showFallback(1) : loadEpisode(episodes[0].id, 1);
+      startBtn.onclick = () => loadEpisode(episodes[0].id, 1);
     }
   }
 
-  async function loadEpisode(id: string, num: number) {
+  async function loadEpisode(id: string | null, num: number) {
     loadingOverlay?.classList.remove("hidden");
-    loadingText!.innerText = `Chargement Épisode ${num}...`;
-    fallbackUI?.classList.add("hidden");
+    loadingText!.innerText = `Chargement de l'épisode ${num}...`;
     video.style.display = "none";
+    embed.classList.add("hidden");
     placeholder!.style.display = "flex";
 
+    if (!id) {
+      // Manual mode: try to find an embed via alternative site
+      showEmbedFallback(num);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/meta/anilist/watch/${id}`);
-      const data = await res.json();
+      const data = await fetchWithFallback(`/meta/anilist/watch/${id}`);
       const source =
         data.sources?.find(
-          (s: any) => s.quality === "default" || s.quality === "1080p"
+          (s: any) => s.quality === "1080p" || s.quality === "default"
         ) || data.sources?.[0];
 
       if (source?.url) {
@@ -235,18 +231,45 @@ const relations =
         throw new Error();
       }
     } catch (e) {
-      showFallback(num);
+      showEmbedFallback(num);
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function showFallback(num: number) {
-    placeholder!.style.display = "none";
-    video.style.display = "none";
-    fallbackUI?.classList.remove("hidden");
-    fbGogo.href = `https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}`;
-    fbHi.href = `https://hianime.to/search?keyword=${encodeURIComponent(animeTitle!)}`;
+  function showEmbedFallback(num: number) {
+    // We use a known stable embed provider or just try a different API
+    // For now, let's try to fetch an embed URL from the API if possible
+    // If not, we use a reliable iframe link
+    loadingText!.innerText =
+      "Flux direct indisponible, passage au lecteur de secours...";
+
+    // Example with a common embed structure
+    const embedUrl = `https://www.documentcloud.org/viewer/`; // Just a placeholder for the logic
+    // Actually, let's use a real logic:
+    // We can try to use the 'GogoAnime' embed from the API
+    fetchWithFallback(
+      `/anime/gogoanime/watch/${animeTitle?.toLowerCase().replace(/ /g, "-")}-episode-${num}`
+    )
+      .then((data) => {
+        if (data.headers?.Referer) {
+          embed.src = data.headers.Referer;
+          placeholder!.style.display = "none";
+          embed.classList.remove("hidden");
+        } else {
+          // Last resort: embed anilist player or similar if available
+          embed.src = `https://anitaku.to/embed/${animeTitle?.toLowerCase().replace(/ /g, "-")}-episode-${num}`; // Experimental
+          placeholder!.style.display = "none";
+          embed.classList.remove("hidden");
+        }
+      })
+      .catch(() => {
+        // Really last resort
+        placeholder!.innerHTML = `<div style="text-align:center; padding:20px;">
+            <p>Impossible de lire l'épisode ${num} en direct.</p>
+            <a href="https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}" target="_blank" style="color:var(--color-primary); font-weight:bold;">Tenter un lecteur externe</a>
+        </div>`;
+      });
   }
 
   function setupPlayer(url: string, isHls: boolean) {
@@ -340,6 +363,11 @@ const relations =
     backdrop-filter: blur(2px);
   }
 
+  #player-embed {
+    width: 100%;
+    height: 100%;
+  }
+
   .loading-overlay {
     position: absolute;
     z-index: 20;
@@ -348,6 +376,8 @@ const relations =
     align-items: center;
     gap: 10px;
     color: white;
+    text-align: center;
+    padding: 1rem;
   }
   .spinner {
     width: 30px;
@@ -361,33 +391,6 @@ const relations =
     to {
       transform: rotate(360deg);
     }
-  }
-
-  .fallback-ui {
-    position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.98);
-    z-index: 30;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    padding: 2rem;
-    text-align: center;
-  }
-  .btn-alt {
-    background: var(--color-primary);
-    color: white;
-    padding: 0.8rem 1.5rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: transform 0.2s;
-  }
-  .btn-alt:hover {
-    transform: scale(1.05);
   }
 
   .info-section {
@@ -409,10 +412,6 @@ const relations =
     background: #1e293b;
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
-  }
-  .rating {
-    color: #fbbf24;
-    font-weight: bold;
   }
   .description {
     color: #cbd5e1;
@@ -523,14 +522,6 @@ const relations =
     white-space: nowrap;
   }
 
-  .loading-eps {
-    padding: 3rem;
-    text-align: center;
-    color: var(--color-text-muted);
-    width: 100%;
-    grid-column: 1/-1;
-  }
-
   .play-btn-large {
     position: relative;
     z-index: 10;
@@ -547,9 +538,5 @@ const relations =
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
-  }
-  .play-btn-large:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
   }
 </style>

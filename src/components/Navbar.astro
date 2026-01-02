@@ -1,6 +1,28 @@
 ---
 import { Home, Search, Heart, User } from "lucide-astro";
 import Logo from "./Logo.astro";
+
+// Authenticated User Avatar Fetch logic
+const token = Astro.cookies.get("anilist_token")?.value;
+let userAvatar = null;
+
+if (token) {
+  try {
+    const query = `query { Viewer { avatar { large } } }`;
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query }),
+    });
+    const data = await res.json();
+    userAvatar = data.data?.Viewer?.avatar?.large;
+  } catch (e) {
+    // Silent fail
+  }
+}
 ---
 
 <!-- Desktop Navigation (Top) -->
@@ -9,19 +31,25 @@ import Logo from "./Logo.astro";
     <div class="nav-left">
       <Logo />
       <nav class="nav-links">
-        <a href="/" class="nav-link active">Accueil</a>
+        <a href="/" class="nav-link">Accueil</a>
         <a href="/search" class="nav-link">Parcourir</a>
         <a href="/favorites" class="nav-link">Favoris</a>
       </nav>
     </div>
 
     <div class="nav-right">
-      <div class="search-trigger">
+      <a href="/search" class="search-trigger">
         <Search size={20} class="text-muted" />
         <span>Rechercher...</span>
-      </div>
+      </a>
       <a href="/profile" class="profile-btn">
-        <User size={20} />
+        {
+          userAvatar ? (
+            <img src={userAvatar} alt="Profile" class="avatar-img" />
+          ) : (
+            <User size={20} />
+          )
+        }
       </a>
     </div>
   </div>
@@ -29,7 +57,7 @@ import Logo from "./Logo.astro";
 
 <!-- Mobile Navigation (Bottom) -->
 <nav class="navbar-mobile">
-  <a href="/" class="mobile-link active">
+  <a href="/" class="mobile-link">
     <Home size={24} />
     <span>Accueil</span>
   </a>
@@ -47,7 +75,13 @@ import Logo from "./Logo.astro";
     <span>Favoris</span>
   </a>
   <a href="/profile" class="mobile-link">
-    <User size={24} />
+    {
+      userAvatar ? (
+        <img src={userAvatar} alt="Profile" class="avatar-img-mobile" />
+      ) : (
+        <User size={24} />
+      )
+    }
     <span>Profil</span>
   </a>
 </nav>
@@ -93,9 +127,11 @@ import Logo from "./Logo.astro";
     font-weight: 500;
     width: 60px;
     transition: color 0.2s;
+    text-decoration: none;
   }
 
-  .mobile-link.active {
+  .mobile-link:hover,
+  .mobile-link:focus {
     color: var(--color-primary);
   }
 
@@ -159,10 +195,10 @@ import Logo from "./Logo.astro";
     color: var(--color-text-muted);
     font-weight: 500;
     font-size: 0.95rem;
+    text-decoration: none;
   }
 
-  .nav-link:hover,
-  .nav-link.active {
+  .nav-link:hover {
     color: var(--color-text-main);
   }
 
@@ -182,6 +218,7 @@ import Logo from "./Logo.astro";
     color: var(--color-text-muted);
     font-size: 0.9rem;
     cursor: pointer;
+    text-decoration: none;
   }
 
   .profile-btn {
@@ -193,6 +230,20 @@ import Logo from "./Logo.astro";
     align-items: center;
     justify-content: center;
     color: white;
+    overflow: hidden;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-img-mobile {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%; /* Keep round for small icon or square? User said square buttons, but avatar is usually round. Let's keep it consistent with icon size */
+    object-fit: cover;
   }
 
   .text-muted {

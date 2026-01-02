@@ -103,3 +103,36 @@ export const getPopularAnime = async (perPage = 10) => {
   const data = await fetchAniList(query, { perPage });
   return data.Page.media as Media[];
 };
+
+export const getAnimeById = async (id: number) => {
+  const query = `
+    query ($id: Int) {
+      Media(id: $id, type: ANIME) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          large
+          extraLarge
+          color
+        }
+        bannerImage
+        description
+        episodes
+        status
+        genres
+        averageScore
+        format
+        nextAiringEpisode {
+          episode
+          airingAt
+        }
+      }
+    }
+  `;
+  const data = await fetchAniList(query, { id });
+  return data.Media as Media;
+};

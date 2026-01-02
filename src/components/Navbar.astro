@@ -31,20 +31,14 @@ if (token) {
         <a href="/" class="nav-link">Accueil</a>
         <a href="/search" class="nav-link">Parcourir</a>
         <a href="/favorites" class="nav-link">Favoris</a>
-        <a href="/support" class="nav-link support-link">Support</a>
+        <a href="/support" class="nav-link">Support</a>
       </nav>
     </div>
 
     <div class="nav-right">
-      <form action="/search" method="get" class="search-trigger">
-        <Search size={18} class="text-muted" />
-        <input
-          type="text"
-          name="q"
-          placeholder="Rechercher..."
-          class="nav-search-input"
-        />
-      </form>
+      <a href="/search" class="search-trigger-btn">
+        <Search size={20} class="text-muted" />
+      </a>
       <a href="/profile" class="profile-btn">
         {
           userAvatar ? (
@@ -177,24 +171,17 @@ if (token) {
   }
   .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
   }
   .nav-link {
     color: var(--color-text-muted);
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     text-decoration: none;
     transition: color 0.2s;
   }
   .nav-link:hover {
     color: white;
-  }
-  .support-link {
-    color: var(--color-accent);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    padding: 0.3rem 0.8rem;
-    border-radius: var(--radius-sm);
-    background: rgba(56, 189, 248, 0.05);
   }
 
   .nav-right {
@@ -202,27 +189,21 @@ if (token) {
     align-items: center;
     gap: 1.5rem;
   }
-  .search-trigger {
+  .search-trigger-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.4rem 0.8rem;
+    padding: 0.6rem;
     border-radius: var(--radius-md);
     border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .nav-search-input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: white;
-    font-size: 0.85rem;
-    width: 120px;
+    color: var(--color-text-muted);
+    text-decoration: none;
   }
 
   .profile-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     background: var(--color-primary);
     border-radius: var(--radius-md);
     display: flex;
@@ -230,6 +211,7 @@ if (token) {
     justify-content: center;
     color: white;
     overflow: hidden;
+    text-decoration: none;
   }
   .avatar-img {
     width: 100%;
@@ -241,5 +223,8 @@ if (token) {
     height: 24px;
     border-radius: 4px;
     object-fit: cover;
+  }
+  .text-muted {
+    color: var(--color-text-muted);
   }
 </style>

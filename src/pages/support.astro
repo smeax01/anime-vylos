@@ -1,0 +1,157 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Mail, MessageCircle, Github, LifeBuoy } from "lucide-astro";
+---
+
+<Layout title="Support | Vylos">
+  <div class="container support-page">
+    <div class="support-card">
+      <div class="icon-header">
+        <LifeBuoy size={48} />
+      </div>
+      <h1>Besoin d'aide ?</h1>
+      <p>
+        L'équipe Vylos est là pour vous aider. Si vous rencontrez un bug ou si
+        un anime est manquant, contactez-nous !
+      </p>
+
+      <div class="contact-methods">
+        <div class="method-card">
+          <Mail class="icon-mail" />
+          <h3>Email</h3>
+          <p>contact@vylos.app</p>
+          <a href="mailto:contact@vylos.app" class="btn-contact"
+            >Envoyer un mail</a
+          >
+        </div>
+
+        <div class="method-card">
+          <MessageCircle class="icon-discord" />
+          <h3>Discord</h3>
+          <p>Rejoignez le serveur Vylos</p>
+          <a href="#" class="btn-contact discord">Discord (ID: Vylos#0001)</a>
+        </div>
+      </div>
+
+      <div class="faq">
+        <h2>Questions fréquentes</h2>
+        <details>
+          <summary>Le lecteur ne se lance pas ?</summary>
+          <p>
+            Essayez de changer de navigateur ou de désactiver vos bloqueurs de
+            publicité. Pensez aussi à vider votre cache.
+          </p>
+        </details>
+        <details>
+          <summary>Un anime est incomplet ?</summary>
+          <p>
+            Les épisodes sont ajoutés automatiquement dès leur sortie. S'il
+            manque une saison, utilisez la section "Relations" sur la page de
+            l'anime.
+          </p>
+        </details>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .support-page {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+    display: flex;
+    justify-content: center;
+  }
+  .support-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 3rem;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+  }
+
+  .icon-header {
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+  p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .contact-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .method-card {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .icon-mail {
+    color: #3b82f6;
+  }
+  .icon-discord {
+    color: #5865f2;
+  }
+
+  .btn-contact {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    transition: transform 0.2s;
+  }
+  .btn-contact.discord {
+    background: #5865f2;
+  }
+  .btn-contact:hover {
+    transform: scale(1.05);
+  }
+
+  .faq {
+    text-align: left;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 2rem;
+  }
+  .faq h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+  details {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+  }
+  summary {
+    font-weight: 600;
+    color: white;
+  }
+  details p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-bottom: 0;
+  }
+</style>

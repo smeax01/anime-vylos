@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { getAnimeById } from "../../lib/anilist";
-import { ArrowLeft, Play, Layers } from "lucide-astro";
+import { ArrowLeft, Play, Layers, Server, AlertCircle } from "lucide-astro";
 
 export const prerender = false;
 
@@ -18,6 +18,7 @@ if (!anime) return Astro.redirect("/404");
 const title = anime.title.romaji || anime.title.english;
 const relations =
   anime.relations?.edges?.filter((e) => e.node.type === "ANIME") || [];
+const cover = anime.bannerImage || anime.coverImage.extraLarge;
 ---
 
 <Layout title={title}>
@@ -27,43 +28,61 @@ const relations =
       <span class="nav-title">{title}</span>
     </div>
 
-    <div class="video-container" id="video-wrapper">
-      <!-- Placeholder / Loading -->
-      <div
-        id="player-placeholder"
-        class="placeholder"
-        style={`background-image: url(${anime.bannerImage || anime.coverImage.extraLarge})`}
-      >
-        <div class="loading-overlay hidden" id="loading-overlay">
-          <div class="spinner"></div>
-          <span id="loading-text">Recherche du flux...</span>
-        </div>
-        <button
-          id="start-btn"
-          class="play-btn-large"
-          data-id={anime.id}
-          data-title={title}
-          data-max-ep={anime.episodes}
+    <!-- ZONE LECTEUR VIDEO -->
+    <div class="video-section">
+      <div class="video-container" id="video-wrapper">
+        <!-- Overlay de démarrage -->
+        <div
+          id="player-placeholder"
+          class="placeholder"
+          style={`background-image: url(${cover})`}
         >
-          <Play fill="currentColor" size={32} />
-          <span>Lancer la lecture</span>
-        </button>
+          <div class="loading-overlay hidden" id="loading-overlay">
+            <div class="spinner"></div>
+            <span id="loading-text">Recherche des meilleurs serveurs...</span>
+          </div>
+          <button
+            id="start-btn"
+            class="play-btn-large"
+            data-id={anime.id}
+            data-title={title}
+            data-max-ep={anime.episodes}
+          >
+            <Play fill="currentColor" size={32} />
+            <span>Lancer l'épisode 1</span>
+          </button>
+        </div>
+
+        <!-- Lecteur Principal (HLS/Plyr) -->
+        <video id="player" controls crossorigin playsinline></video>
+
+        <!-- Lecteur Alternatif (Embed Iframe) -->
+        <iframe
+          id="player-embed"
+          class="hidden"
+          frameborder="0"
+          allowfullscreen
+          allow="autoplay; encrypted-media"></iframe>
       </div>
 
-      <!-- Lecteur Direct (Plyr) -->
-      <video id="player" controls crossorigin playsinline></video>
-
-      <!-- Lecteur Embed (Fallback interne) -->
-      <iframe
-        id="player-embed"
-        class="hidden"
-        frameborder="0"
-        allowfullscreen
-        allow="autoplay; encrypted-media"></iframe>
+      <!-- CONTROLES DES SOURCES -->
+      <div class="source-controls hidden" id="source-controls">
+        <div class="current-ep-info">
+          <span id="display-ep">Épisode 1</span>
+        </div>
+        <div class="server-list">
+          <button class="server-btn active" data-server="1"
+            >Serveur 1 (HD)</button
+          >
+          <button class="server-btn" data-server="2">Serveur 2 (Multi)</button>
+          <button class="server-btn" data-server="3">Serveur 3 (Embed)</button>
+        </div>
+      </div>
     </div>
 
     <div class="container info-section">
       <h1 class="anime-title">{title}</h1>
+
       <div class="meta-row">
         <span class="meta-tag rating"
           >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
@@ -71,14 +90,17 @@ const relations =
         <span class="meta-tag">{anime.status}</span>
         <span class="meta-tag">{anime.episodes || "?"} Eps</span>
         <span class="meta-tag">{anime.format}</span>
+        <span class="meta-tag lang-tag">VOSTFR / VF</span>
       </div>
+
       <p class="description" set:html={anime.description} />
 
+      <!-- Saisons / Relations -->
       {
         relations.length > 0 && (
           <div class="relations-section">
             <h3 class="section-header">
-              <Layers size={18} /> Saisons & Suites
+              <Layers size={18} /> Saisons & Connexes
             </h3>
             <div class="relations-scroll">
               {relations.map((rel) => (
@@ -99,9 +121,10 @@ const relations =
         )
       }
 
+      <!-- Liste des épisodes -->
       <h3 class="section-header">Épisodes</h3>
       <div id="episodes-grid" class="episodes-grid">
-        <div class="loading-eps">Chargement...</div>
+        <div class="loading-eps">Recherche des épisodes disponibles...</div>
       </div>
     </div>
   </div>
@@ -119,162 +142,137 @@ const relations =
   const loadingText = document.getElementById("loading-text");
   const placeholder = document.getElementById("player-placeholder");
   const episodesGrid = document.getElementById("episodes-grid");
+  const sourceControls = document.getElementById("source-controls");
+  const displayEp = document.getElementById("display-ep");
+  const serverBtns = document.querySelectorAll(".server-btn");
 
   let player: Plyr;
+  let activeEpisodeId: string | null = null;
+  let activeEpisodeNum: number = 1;
+  let currentServer: number = 1;
+
   const animeId = startBtn?.dataset.id;
   const animeTitle = startBtn?.dataset.title;
-  const maxEpCount = Number(startBtn?.dataset.maxEp || 0);
+  const totalEps = Number(startBtn?.dataset.maxEp || 12);
 
-  const API_BASE = "https://api-consumet.vercel.app";
+  // APIs Multiples pour plus de stabilité
+  const APIS = [
+    "https://api-consumet.vercel.app",
+    "https://consumet-api-nine.vercel.app",
+    "https://api.consumet.org",
+  ];
 
-  async function fetchWithFallback(path: string) {
-    const instances = [
-      "https://api-consumet.vercel.app",
-      "https://consumet-api-nine.vercel.app",
-      "https://api-consumet-org.vercel.app",
-    ];
-    for (const base of instances) {
+  async function callAPI(path: string) {
+    for (const api of APIS) {
       try {
-        const res = await fetch(`${base}${path}`);
+        const res = await fetch(`${api}${path}`);
         if (res.ok) return await res.json();
       } catch (e) {}
     }
-    throw new Error("API fail");
+    throw new Error("Toutes les sources ont échoué.");
   }
 
-  async function fetchEpisodes() {
+  async function loadEpisodeList() {
     if (!animeId) return;
     loadingOverlay?.classList.remove("hidden");
 
     try {
-      loadingText!.innerText = "Recherche des épisodes...";
-      const data = await fetchWithFallback(`/meta/anilist/info/${animeId}`);
-
+      loadingText!.innerText = "Récupération de la liste...";
+      const data = await callAPI(`/meta/anilist/info/${animeId}`);
       if (data.episodes && data.episodes.length > 0) {
         renderEpisodes(data.episodes);
       } else {
-        // Try Gogo search directly
-        const search = await fetchWithFallback(
-          `/anime/gogoanime/${encodeURIComponent(animeTitle!)}`
-        );
-        if (search.results && search.results.length > 0) {
-          const info = await fetchWithFallback(
-            `/anime/gogoanime/info/${search.results[0].id}`
-          );
-          renderEpisodes(info.episodes);
-        } else {
-          throw new Error();
-        }
+        throw new Error();
       }
     } catch (e) {
-      renderManualEpisodes();
+      // Manual fallback if API fails
+      const manualEps = [];
+      for (let i = 1; i <= (totalEps || 12); i++) {
+        manualEps.push({ id: `manual-${i}`, number: i, title: `Épisode ${i}` });
+      }
+      renderEpisodes(manualEps);
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function renderManualEpisodes() {
-    const list = [];
-    const count = maxEpCount > 0 ? maxEpCount : 12;
-    for (let i = 1; i <= count; i++) {
-      list.push({ id: null, number: i, title: `Épisode ${i}` });
-    }
-    renderEpisodes(list);
-  }
-
-  function renderEpisodes(episodes: any[]) {
+  function renderEpisodes(eps: any[]) {
     episodesGrid!.innerHTML = "";
-    episodes.forEach((ep) => {
+    eps.forEach((ep) => {
       const btn = document.createElement("button");
       btn.className = "episode-card";
-      btn.onclick = () => loadEpisode(ep.id, ep.number);
+      btn.onclick = () => playEpisode(ep.id, ep.number);
       btn.innerHTML = `
         <div class="ep-thumb"><div class="no-img">${ep.number}</div></div>
         <div class="ep-info">
           <span class="ep-num">Épisode ${ep.number}</span>
           <span class="ep-title">${ep.title || `Épisode ${ep.number}`}</span>
-        </div>
-      `;
+        </div>`;
       episodesGrid!.appendChild(btn);
     });
-
-    if (startBtn) {
-      startBtn.onclick = () => loadEpisode(episodes[0].id, 1);
-    }
+    if (startBtn) startBtn.onclick = () => playEpisode(eps[0].id, 1);
   }
 
-  async function loadEpisode(id: string | null, num: number) {
+  async function playEpisode(id: string | null, num: number) {
+    activeEpisodeId = id;
+    activeEpisodeNum = num;
+    displayEp!.innerText = `Épisode ${num}`;
+
+    placeholder!.style.display = "flex";
     loadingOverlay?.classList.remove("hidden");
-    loadingText!.innerText = `Chargement de l'épisode ${num}...`;
     video.style.display = "none";
     embed.classList.add("hidden");
-    placeholder!.style.display = "flex";
-
-    if (!id) {
-      // Manual mode: try to find an embed via alternative site
-      showEmbedFallback(num);
-      return;
-    }
+    sourceControls!.classList.remove("hidden");
 
     try {
-      const data = await fetchWithFallback(`/meta/anilist/watch/${id}`);
-      const source =
-        data.sources?.find(
-          (s: any) => s.quality === "1080p" || s.quality === "default"
-        ) || data.sources?.[0];
-
-      if (source?.url) {
-        setupPlayer(source.url, source.isM3U8 || source.url.includes(".m3u8"));
-        placeholder!.style.display = "none";
-        video.style.display = "block";
-      } else {
-        throw new Error();
-      }
+      if (currentServer === 1) await loadServer1(id, num);
+      else if (currentServer === 2) await loadServer2(id, num);
+      else loadServer3(num);
     } catch (e) {
-      showEmbedFallback(num);
+      console.error(e);
+      loadServer3(num); // Force embed if servers fail
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function showEmbedFallback(num: number) {
-    // We use a known stable embed provider or just try a different API
-    // For now, let's try to fetch an embed URL from the API if possible
-    // If not, we use a reliable iframe link
-    loadingText!.innerText =
-      "Flux direct indisponible, passage au lecteur de secours...";
-
-    // Example with a common embed structure
-    const embedUrl = `https://www.documentcloud.org/viewer/`; // Just a placeholder for the logic
-    // Actually, let's use a real logic:
-    // We can try to use the 'GogoAnime' embed from the API
-    fetchWithFallback(
-      `/anime/gogoanime/watch/${animeTitle?.toLowerCase().replace(/ /g, "-")}-episode-${num}`
-    )
-      .then((data) => {
-        if (data.headers?.Referer) {
-          embed.src = data.headers.Referer;
-          placeholder!.style.display = "none";
-          embed.classList.remove("hidden");
-        } else {
-          // Last resort: embed anilist player or similar if available
-          embed.src = `https://anitaku.to/embed/${animeTitle?.toLowerCase().replace(/ /g, "-")}-episode-${num}`; // Experimental
-          placeholder!.style.display = "none";
-          embed.classList.remove("hidden");
-        }
-      })
-      .catch(() => {
-        // Really last resort
-        placeholder!.innerHTML = `<div style="text-align:center; padding:20px;">
-            <p>Impossible de lire l'épisode ${num} en direct.</p>
-            <a href="https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}" target="_blank" style="color:var(--color-primary); font-weight:bold;">Tenter un lecteur externe</a>
-        </div>`;
-      });
+  // SERVEUR 1 : Consumet HLS
+  async function loadServer1(id: string | null, num: number) {
+    if (!id || id.startsWith("manual")) throw new Error();
+    const data = await callAPI(`/meta/anilist/watch/${id}`);
+    const source =
+      data.sources?.find(
+        (s: any) => s.quality === "default" || s.quality === "1080p"
+      ) || data.sources?.[0];
+    if (!source) throw new Error();
+    setupHLS(source.url);
   }
 
-  function setupPlayer(url: string, isHls: boolean) {
+  // SERVEUR 2 : GogoAnime direct
+  async function loadServer2(id: string | null, num: number) {
+    loadingText!.innerText = "Recherche Serveur 2...";
+    const slug = animeTitle?.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    const data = await callAPI(`/anime/gogoanime/watch/${slug}-episode-${num}`);
+    if (!data.sources || data.sources.length === 0) throw new Error();
+    setupHLS(data.sources[0].url);
+  }
+
+  // SERVEUR 3 : Embed (Anime-Sama Style)
+  function loadServer3(num: number) {
+    loadingText!.innerText = "Passage au lecteur de secours...";
+    placeholder!.style.display = "none";
+    embed.classList.remove("hidden");
+    const slug = animeTitle?.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    embed.src = `https://anitaku.to/embed/${slug}-episode-${num}`;
+    // Si anitaku ne marche pas, on peut tester d'autres embed providers ici
+  }
+
+  function setupHLS(url: string) {
     if (player) player.destroy();
-    if (isHls && Hls.isSupported()) {
+    placeholder!.style.display = "none";
+    video.style.display = "block";
+
+    if (Hls.isSupported()) {
       const hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
@@ -296,7 +294,17 @@ const relations =
     video.play().catch(() => {});
   }
 
-  fetchEpisodes();
+  // GESTION DES BOUTONS SERVEURS
+  serverBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      serverBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentServer = Number((btn as HTMLElement).dataset.server);
+      playEpisode(activeEpisodeId, activeEpisodeNum);
+    });
+  });
+
+  loadEpisodeList();
 </script>
 
 <style>
@@ -304,8 +312,9 @@ const relations =
     display: none !important;
   }
   .player-page {
-    padding-bottom: 100px;
+    padding-bottom: 120px;
   }
+
   .top-nav {
     position: absolute;
     top: 0;
@@ -316,35 +325,37 @@ const relations =
     align-items: center;
     gap: 1rem;
     z-index: 50;
-    background: linear-gradient(
-      180deg,
-      rgba(2, 6, 23, 0.9) 0%,
-      transparent 100%
-    );
   }
   .back-btn {
     color: white;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
     padding: 0.5rem;
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     display: flex;
     backdrop-filter: blur(4px);
   }
   .nav-title {
-    font-weight: 600;
+    font-weight: 700;
     color: white;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   }
 
+  /* VIDEO SECTION */
+  .video-section {
+    background: #000;
+    padding: 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
   .video-container {
     width: 100%;
     aspect-ratio: 16/9;
-    background: #000;
     position: relative;
-    max-height: 500px;
+    max-width: 1100px;
+    margin: 0 auto;
+    overflow: hidden;
   }
+
   .placeholder {
     position: absolute;
     inset: 0;
@@ -353,36 +364,54 @@ const relations =
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #0f172a;
   }
-  .placeholder::before {
+  .placeholder::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(2px);
   }
 
+  #player,
   #player-embed {
     width: 100%;
     height: 100%;
+    display: none;
+  }
+  #player-embed {
+    display: block;
+  } /* if not hidden */
+
+  .play-btn-large {
+    position: relative;
+    z-index: 10;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .loading-overlay {
     position: absolute;
     z-index: 20;
+    color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    color: white;
-    text-align: center;
-    padding: 1rem;
   }
   .spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
     border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -393,35 +422,139 @@ const relations =
     }
   }
 
-  .info-section {
-    padding-top: 2rem;
+  /* SOURCE CONTROLS */
+  .source-controls {
+    background: #0f172a;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
+  .server-list {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .server-btn {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .server-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+  .current-ep-info {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  /* INFO SECTION */
   .anime-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 900;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: white;
   }
   .meta-row {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
     margin-bottom: 1.5rem;
-    font-size: 0.85rem;
-    color: #94a3b8;
   }
   .meta-tag {
     background: #1e293b;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
+    color: #94a3b8;
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .rating {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+  }
+  .lang-tag {
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
   }
   .description {
     color: #cbd5e1;
-    line-height: 1.7;
+    line-height: 1.6;
     font-size: 0.95rem;
-    margin-bottom: 2.5rem;
-    max-height: 150px;
+    margin-bottom: 3rem;
+    max-height: 154px;
     overflow-y: auto;
   }
 
+  /* EPISODES */
+  .section-header {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1.5rem;
+    border-left: 5px solid var(--color-primary);
+    padding-left: 1rem;
+  }
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  :global(.episode-card) {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.2s;
+  }
+  :global(.episode-card:hover) {
+    transform: translateY(-5px);
+    border-color: var(--color-primary);
+  }
+  :global(.ep-thumb) {
+    aspect-ratio: 16/9;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  :global(.no-img) {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #334155;
+  }
+  :global(.ep-info) {
+    padding: 0.75rem;
+  }
+  :global(.ep-num) {
+    color: var(--color-primary);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  :global(.ep-title) {
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* SEASONS */
   .relations-section {
     margin-bottom: 3rem;
   }
@@ -433,16 +566,16 @@ const relations =
     scrollbar-width: none;
   }
   .rel-card {
-    flex: 0 0 120px;
+    flex: 0 0 130px;
     text-decoration: none;
-    background: #1e293b;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #1e293b;
+    transition: transform 0.2s;
   }
   .rel-card img {
     width: 100%;
-    height: 160px;
+    height: 180px;
     object-fit: cover;
   }
   .rel-info {
@@ -454,89 +587,14 @@ const relations =
     font-weight: 800;
     text-transform: uppercase;
     display: block;
-    margin-bottom: 2px;
   }
   .rel-title {
+    color: white;
     font-size: 0.75rem;
-    color: white;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-  }
-
-  .section-header {
-    font-size: 1.3rem;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid var(--color-primary);
-    padding-left: 0.75rem;
-    color: white;
-  }
-  .episodes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-  }
-  :global(.episode-card) {
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    overflow: hidden;
-    padding: 0;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s;
-  }
-  :global(.episode-card:hover) {
-    border-color: var(--color-primary);
-    transform: translateY(-3px);
-  }
-  :global(.no-img) {
-    aspect-ratio: 16/9;
-    background: #0f172a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #334155;
-  }
-  :global(.ep-info) {
-    padding: 0.75rem;
-  }
-  :global(.ep-num) {
-    font-size: 0.7rem;
-    color: var(--color-primary);
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-  :global(.ep-title) {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: white;
-    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .play-btn-large {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    background: var(--color-primary);
-    border: none;
-    color: white;
-    padding: 1.2rem 2.5rem;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+    display: block;
   }
 </style>

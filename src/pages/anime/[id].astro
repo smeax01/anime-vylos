@@ -1,7 +1,14 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { getAnimeById } from "../../lib/anilist";
-import { ArrowLeft, Play, Tv, Layers, Info, AlertTriangle } from "lucide-astro";
+import {
+  ArrowLeft,
+  Play,
+  Tv,
+  Info,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-astro";
 
 export const prerender = false;
 
@@ -20,24 +27,31 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 ---
 
 <Layout title={title}>
+  <!-- Pass server data to client safely -->
+  <div
+    id="anime-data"
+    data-id={anime.id}
+    data-title={title}
+    data-eps={anime.episodes || 0}
+    class="hidden"
+  >
+  </div>
+
   <div class="vylos-stream-page">
     <div class="stream-nav">
       <a href="/" class="circle-back"><ArrowLeft size={24} /></a>
       <div class="anime-mini-info">
         <span class="mini-title">{title}</span>
-        <span class="mini-status" id="mini-ep-display"
-          >Saison 1 • Épisode 1</span
-        >
+        <span class="mini-status" id="mini-ep-display">Initialisation...</span>
       </div>
     </div>
 
-    <!-- PLAYER SECTION (ANIME-SAMA STYLE) -->
     <div class="main-player-section">
       <div class="player-viewport">
-        <!-- Overlay de démarrage -->
         <div id="player-loading" class="player-overlay">
           <div class="vylos-loader"></div>
-          <p id="status-text">Récupération des lecteurs Anime-Sama...</p>
+          <p id="status-text">Recherche sur Anime-Sama...</p>
+          <div id="search-feedback" class="search-progress"></div>
         </div>
 
         <iframe
@@ -50,51 +64,56 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
         </iframe>
       </div>
 
-      <!-- CHOIX DU LECTEUR (SIBNET, ETC) -->
       <div class="player-toolbar">
         <div class="server-selector">
-          <span class="toolbar-label">SOURCES DISPONIBLES :</span>
+          <span class="toolbar-label">SOURCES :</span>
           <div class="server-chips" id="as-servers">
-            <!-- Injecté par JS -->
+            <!-- Boutons injectés ici -->
           </div>
         </div>
         <div class="player-actions">
-          <button class="action-btn" id="reload-player">Réessayer</button>
+          <button class="action-btn" id="reload-player"
+            ><RefreshCw size={14} /> Actualiser</button
+          >
         </div>
       </div>
     </div>
 
     <div class="container stream-content">
-      <div class="content-header">
-        <h1 class="anime-title">{title}</h1>
-        <div class="badges">
-          <span class="badge score"
-            >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
-          >
-          <span class="badge lang">VOSTFR / VF</span>
-        </div>
-      </div>
-
-      <div class="stream-grid">
-        <div class="episodes-column">
-          <h3 class="section-title"><Tv size={20} /> Épisodes</h3>
-          <div class="ep-selector-grid" id="ep-list">
-            <!-- Injecté par JS -->
+      <div class="stream-layout">
+        <div class="main-col">
+          <h1 class="anime-title">{title}</h1>
+          <div class="badges">
+            <span class="badge score"
+              >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
+            >
+            <span class="badge status">{anime.status}</span>
           </div>
-          <div id="no-ep-warning" class="hidden error-box">
-            <AlertTriangle size={20} />
-            <span>Aucun épisode trouvé sur Anime-Sama pour ce titre.</span>
+
+          <div class="episodes-section">
+            <h3 class="section-title"><Tv size={20} /> Liste des Épisodes</h3>
+            <div class="ep-selector-grid" id="ep-list">
+              <!-- Épisodes injectés ici -->
+            </div>
+          </div>
+
+          <div id="error-box" class="hidden error-box">
+            <AlertCircle size={24} />
+            <div>
+              <strong>Anime introuvable sur la source directe.</strong><br />
+              <small>Vérifiez l'orthographe ou essayez un autre anime.</small>
+            </div>
           </div>
         </div>
 
-        <div class="details-column">
+        <div class="side-col">
           <h3 class="section-title"><Info size={20} /> Synopsis</h3>
           <p class="description" set:html={anime.description} />
 
           {
             anime.relations?.edges?.length > 0 && (
               <div class="seasons-area">
-                <h3 class="section-title">Autres Saisons</h3>
+                <h3 class="section-title">Relations</h3>
                 <div class="seasons-stack">
                   {anime.relations.edges
                     .filter((e) => e.node.type === "ANIME")
@@ -118,67 +137,92 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 </Layout>
 
 <script>
+  // DOM Elements
+  const dataEl = document.getElementById("anime-data");
   const frame = document.getElementById("content-frame") as HTMLIFrameElement;
   const loader = document.getElementById("player-loading");
   const statusText = document.getElementById("status-text");
   const epList = document.getElementById("ep-list");
   const serverBox = document.getElementById("as-servers");
   const miniEp = document.getElementById("mini-ep-display");
-  const warning = document.getElementById("no-ep-warning");
+  const errorBox = document.getElementById("error-box");
 
-  const animeTitle = "{title}";
+  const animeTitle = dataEl?.dataset.title || "";
 
   let currentSources: any = {};
   let currentEp = 1;
   let activeServer = "eps1";
 
-  // Slugify for Anime-Sama
-  function slugify(text: string) {
-    return text
+  // Slug names to try (Anime-Sama is picky)
+  function getSlugs(title: string) {
+    const base = title
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/[\u0300-\u036f]/g, "");
+    const clean = base
       .replace(/[^a-z0-9]/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
+
+    const slugs = [clean];
+    // Special cases: if it has "season", "2nd", etc.
+    if (clean.includes("-season")) slugs.push(clean.split("-season")[0]);
+    if (clean.includes("-tv")) slugs.push(clean.replace("-tv", ""));
+
+    return [...new Set(slugs)];
+  }
+
+  async function searchAnimeSama() {
+    const slugs = getSlugs(animeTitle);
+    statusText!.innerText = "Recherche miroir Anime-Sama...";
+
+    for (const slug of slugs) {
+      try {
+        const res = await fetch(`/api/as-source?slug=${slug}`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data.sources && Object.keys(data.sources).length > 0) {
+          return data.sources;
+        }
+      } catch (e) {}
+    }
+    return null;
   }
 
   async function init() {
-    const slug = slugify(animeTitle);
-    try {
-      const res = await fetch(`/api/as-source?slug=${slug}`);
-      const data = await res.json();
+    const sources = await searchAnimeSama();
 
-      if (data.sources && Object.keys(data.sources).length > 0) {
-        currentSources = data.sources;
-        // Pick first server that has data
-        activeServer = Object.keys(currentSources)[0];
-        renderServers();
-        renderEpisodes();
-        loadVideo(1);
-      } else {
-        throw new Error();
-      }
-    } catch (e) {
-      statusText!.innerText = "Erreur : Anime introuvable sur Anime-Sama.";
-      warning!.classList.remove("hidden");
+    if (sources) {
+      currentSources = sources;
+      // Search for eps3 (Sibnet) or eps1 as default
+      activeServer = currentSources.eps3
+        ? "eps3"
+        : Object.keys(currentSources)[0];
+      renderServers();
+      renderEpisodes();
+      loadVideo(1);
+    } else {
+      loader!.style.display = "none";
+      errorBox!.classList.remove("hidden");
     }
   }
 
   function renderServers() {
     serverBox!.innerHTML = "";
+    const nameMap: any = {
+      eps1: "Principal",
+      eps2: "Flash",
+      eps3: "Sibnet (Recommandé)",
+      eps4: "Sendvid",
+    };
+
     Object.keys(currentSources)
       .sort()
       .forEach((key) => {
-        const nameMap: any = {
-          eps1: "Lecteur 1",
-          eps2: "Lecteur 2",
-          eps3: "Sibnet",
-          eps4: "Sendvid",
-        };
+        if (currentSources[key].length === 0) return;
         const btn = document.createElement("button");
         btn.className = `chip ${key === activeServer ? "active" : ""}`;
-        btn.innerText = nameMap[key] || key;
+        btn.innerText = nameMap[key] || `Source ${key}`;
         btn.onclick = () => {
           activeServer = key;
           renderServers();
@@ -190,37 +234,39 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
   function renderEpisodes() {
     epList!.innerHTML = "";
-    const epCount = currentSources[activeServer].length;
-    for (let i = 1; i <= epCount; i++) {
+    const episodes = currentSources[activeServer];
+    episodes.forEach((url, index) => {
+      const num = index + 1;
       const btn = document.createElement("button");
-      btn.className = `ep-chip ${i === currentEp ? "active" : ""}`;
-      btn.innerText = i;
+      btn.className = `ep-chip ${num === currentEp ? "active" : ""}`;
+      btn.innerText = num;
       btn.onclick = () => {
-        currentEp = i;
+        currentEp = num;
         document
           .querySelectorAll(".ep-chip")
           .forEach((c) => c.classList.remove("active"));
         btn.classList.add("active");
-        loadVideo(i);
+        loadVideo(num);
       };
       epList!.appendChild(btn);
-    }
+    });
   }
 
   function loadVideo(num: number) {
     currentEp = num;
     miniEp!.innerText = `Saison 1 • Épisode ${num}`;
     loader!.style.display = "flex";
+    statusText!.innerText = `Chargement ${activeServer === "eps3" ? "Sibnet" : "flux"}...`;
 
     const url = currentSources[activeServer][num - 1];
     if (url) {
       frame.src = url;
-      // Wait for iframe to load (approx)
+      // Check if loaded (approximate)
       setTimeout(() => {
         loader!.style.display = "none";
-      }, 1500);
+      }, 2000);
     } else {
-      statusText!.innerText = "Épisode non disponible sur ce lecteur.";
+      statusText!.innerText = "Source indisponible pour cet épisode.";
     }
   }
 
@@ -237,6 +283,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   .vylos-stream-page {
     min-height: 100vh;
     background: #020617;
+    color: white;
   }
 
   .stream-nav {
@@ -244,24 +291,28 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     top: 0;
     left: 0;
     width: 100%;
-    padding: 1rem;
+    padding: 1.25rem 2rem;
     z-index: 100;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    background: linear-gradient(to bottom, rgba(2, 6, 23, 0.9), transparent);
+    gap: 1.5rem;
+    background: linear-gradient(to bottom, rgba(2, 6, 23, 0.95), transparent);
   }
   .circle-back {
-    width: 40px;
-    height: 40px;
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    width: 44px;
+    height: 44px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    backdrop-filter: blur(10px);
+    transition: 0.2s;
+  }
+  .circle-back:hover {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
   }
 
   .anime-mini-info {
@@ -270,28 +321,28 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   }
   .mini-title {
     font-weight: 800;
+    font-size: 1rem;
     color: white;
-    font-size: 0.9rem;
   }
   .mini-status {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--color-primary);
     font-weight: 700;
     text-transform: uppercase;
   }
 
+  /* PLAYER */
   .main-player-section {
     background: #000;
-    padding-top: 60px;
+    padding-top: 80px;
   }
   .player-viewport {
     width: 100%;
     aspect-ratio: 16/9;
-    max-width: 1280px;
+    max-width: 1350px;
     margin: 0 auto;
     position: relative;
     background: #000;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   }
   .stream-iframe {
     width: 100%;
@@ -308,16 +359,15 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    color: white;
+    gap: 1.5rem;
   }
   .vylos-loader {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(59, 130, 246, 0.1);
+    width: 45px;
+    height: 45px;
+    border: 4px solid rgba(59, 130, 246, 0.1);
     border-top-color: var(--color-primary);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
   }
   @keyframes spin {
     to {
@@ -326,10 +376,10 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   }
 
   .player-toolbar {
-    max-width: 1280px;
+    max-width: 1350px;
     margin: 0 auto;
     background: #0f172a;
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -338,83 +388,89 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   .server-selector {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
   }
   .toolbar-label {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 900;
-    color: #64748b;
+    color: #475569;
     text-transform: uppercase;
+    letter-spacing: 1px;
   }
   .server-chips {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
   .chip {
     background: #1e293b;
     color: #94a3b8;
     border: none;
-    padding: 0.4rem 1rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     font-weight: 800;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.3s;
   }
   .chip.active {
     background: var(--color-primary);
     color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
   .action-btn {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #64748b;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
+  /* CONTENT AREA */
   .stream-content {
-    padding-top: 3rem;
+    padding-top: 3.5rem;
   }
+  .stream-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 4rem;
+  }
+  @media (max-width: 1100px) {
+    .stream-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .anime-title {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     font-weight: 900;
     margin-bottom: 1rem;
-    color: white;
+    letter-spacing: -1px;
   }
   .badges {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
   }
   .badge {
-    padding: 4px 12px;
+    padding: 6px 14px;
     background: #1e293b;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: #cbd5e1;
   }
   .score {
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.1);
   }
 
-  .stream-grid {
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 3rem;
-  }
-  @media (max-width: 1024px) {
-    .stream-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
   .section-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 900;
     color: white;
     margin-bottom: 1.5rem;
@@ -422,19 +478,22 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     align-items: center;
     gap: 0.75rem;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
+  /* EPISODES */
   .ep-selector-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 10px;
+    margin-bottom: 3rem;
   }
   .ep-chip {
     aspect-ratio: 1;
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.05);
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 900;
     cursor: pointer;
     transition: 0.2s;
@@ -444,64 +503,69 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   }
   .ep-chip:hover {
     border-color: var(--color-primary);
+    transform: translateY(-2px);
   }
   .ep-chip.active {
     background: var(--color-primary);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
 
   .description {
     color: #94a3b8;
-    line-height: 1.7;
-    font-size: 0.95rem;
+    line-height: 1.8;
+    font-size: 1rem;
     margin-bottom: 3rem;
   }
   .error-box {
     background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
-    padding: 1rem;
-    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    padding: 1.5rem;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 600;
+    gap: 1rem;
   }
 
+  /* SIDEBAR SEASONS */
   .seasons-stack {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
   .season-link {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     text-decoration: none;
     background: #0f172a;
-    padding: 0.5rem;
-    border-radius: 8px;
+    padding: 0.75rem;
+    border-radius: 12px;
     border: 1px solid transparent;
-    transition: 0.2s;
+    transition: 0.3s;
   }
   .season-link:hover {
     border-color: var(--color-primary);
+    background: #1e293b;
   }
   .season-link img {
-    width: 50px;
-    height: 70px;
+    width: 55px;
+    height: 80px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   .rel-tag {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     color: var(--color-primary);
     font-weight: 900;
     text-transform: uppercase;
+    margin-bottom: 4px;
     display: block;
   }
   .rel-name {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: white;
     font-weight: 600;
+    line-height: 1.3;
   }
 </style>

@@ -126,6 +126,22 @@ export const getAnimeById = async (id: number) => {
         genres
         averageScore
         format
+        relations {
+          edges {
+            relationType
+            node {
+              id
+              title {
+                romaji
+                english
+              }
+              coverImage {
+                medium
+              }
+              type
+            }
+          }
+        }
         nextAiringEpisode {
           episode
           airingAt

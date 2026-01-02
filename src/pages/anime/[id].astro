@@ -35,7 +35,7 @@ const relations =
       >
         <div class="loading-overlay hidden" id="loading-overlay">
           <div class="spinner"></div>
-          <span>Initialisation du flux...</span>
+          <span id="loading-text">Recherche des épisodes...</span>
         </div>
         <button
           id="start-btn"
@@ -45,15 +45,22 @@ const relations =
           data-max-ep={anime.episodes}
         >
           <Play fill="currentColor" size={32} />
-          <span>Lancer l'épisode 1</span>
+          <span>Lancer la lecture</span>
         </button>
       </div>
       <div id="fallback-ui" class="hidden fallback-ui">
-        <h3>Source interne indisponible 😕</h3>
-        <p>Utilisez un lecteur externe sécurisé pour cet anime :</p>
+        <h3>Source interne introuvable 😕</h3>
+        <p>
+          Cet anime (ou cet épisode) n'est pas disponible sur nos serveurs
+          directs.
+        </p>
         <div class="fallback-actions">
-          <a id="fb-gogo" href="#" target="_blank" class="btn-alt">GogoAnime</a>
-          <a id="fb-hi" href="#" target="_blank" class="btn-alt">HiAnime</a>
+          <a id="fb-gogo" href="#" target="_blank" class="btn-alt"
+            >Regarder sur GogoAnime</a
+          >
+          <a id="fb-hi" href="#" target="_blank" class="btn-alt"
+            >Regarder sur HiAnime</a
+          >
         </div>
       </div>
       <video id="player" controls crossorigin playsinline></video>
@@ -98,7 +105,7 @@ const relations =
 
       <h3 class="section-header">Épisodes</h3>
       <div id="episodes-grid" class="episodes-grid">
-        <div class="loading-eps">Recherche des épisodes...</div>
+        <div class="loading-eps">Chargement des données...</div>
       </div>
     </div>
   </div>
@@ -112,6 +119,7 @@ const relations =
   const video = document.getElementById("player") as HTMLVideoElement;
   const startBtn = document.getElementById("start-btn");
   const loadingOverlay = document.getElementById("loading-overlay");
+  const loadingText = document.getElementById("loading-text");
   const placeholder = document.getElementById("player-placeholder");
   const fallbackUI = document.getElementById("fallback-ui");
   const episodesGrid = document.getElementById("episodes-grid");
@@ -122,49 +130,63 @@ const relations =
   let player: Plyr;
   const animeId = startBtn?.dataset.id;
   const animeTitle = startBtn?.dataset.title;
-  const maxEp = Number(startBtn?.dataset.maxEp || 12);
+  const maxEpCount = Number(startBtn?.dataset.maxEp || 0);
 
-  // Fallback links
-  const updateFallbacks = (epNum = 1) => {
-    fbGogo.href = `https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}`;
-    fbHi.href = `https://hianime.to/search?keyword=${encodeURIComponent(animeTitle!)}`;
-  };
+  const API_BASE = "https://api-consumet.vercel.app";
 
-  async function fetchAnimeInfo() {
+  // State to store which provider we are using
+  let currentEpisodes: any[] = [];
+
+  async function fetchEpisodes() {
     if (!animeId) return;
     loadingOverlay?.classList.remove("hidden");
-    updateFallbacks(1);
 
     try {
-      const res = await fetch(
-        `https://api-consumet.vercel.app/meta/anilist/info/${animeId}`
-      );
+      // 1. Try Meta AniList (Most accurate)
+      loadingText!.innerText = "Sync avec AniList...";
+      const res = await fetch(`${API_BASE}/meta/anilist/info/${animeId}`);
       const data = await res.json();
 
       if (data.episodes && data.episodes.length > 0) {
-        renderEpisodes(data.episodes);
+        currentEpisodes = data.episodes;
       } else {
-        throw new Error("No episodes in API");
+        // 2. Try Title Search with Provider GogoAnime
+        loadingText!.innerText = "Recherche via GogoAnime...";
+        const searchRes = await fetch(
+          `${API_BASE}/anime/gogoanime/${encodeURIComponent(animeTitle!)}`
+        );
+        const searchData = await searchRes.json();
+        if (searchData.results && searchData.results.length > 0) {
+          const infoRes = await fetch(
+            `${API_BASE}/anime/gogoanime/info/${searchData.results[0].id}`
+          );
+          const infoData = await infoRes.json();
+          currentEpisodes = infoData.episodes;
+        }
+      }
+
+      if (currentEpisodes.length > 0) {
+        renderEpisodes(currentEpisodes);
+      } else {
+        throw new Error("No episodes found anywhere");
       }
     } catch (e) {
-      console.warn("API direct ID failed, using manual episode generation.");
-      generateManualEpisodes();
+      console.warn(
+        "Internal search failed, providing manual list for external playback."
+      );
+      renderManualEpisodes();
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function generateManualEpisodes() {
-    episodesGrid!.innerHTML = "";
-    const episodes = [];
-    for (let i = 1; i <= maxEp; i++) {
-      episodes.push({
-        id: `${animeTitle}-episode-${i}`,
-        number: i,
-        title: `Épisode ${i}`,
-      });
+  function renderManualEpisodes() {
+    const list = [];
+    const count = maxEpCount > 0 ? maxEpCount : 12;
+    for (let i = 1; i <= count; i++) {
+      list.push({ id: `manual-${i}`, number: i, title: `Épisode ${i}` });
     }
-    renderEpisodes(episodes, true);
+    renderEpisodes(list, true);
   }
 
   function renderEpisodes(episodes: any[], isManual = false) {
@@ -173,7 +195,7 @@ const relations =
       const btn = document.createElement("button");
       btn.className = "episode-card";
       btn.onclick = () =>
-        isManual ? showFallback() : loadEpisode(ep.id, ep.number);
+        isManual ? showFallback(ep.number) : loadEpisode(ep.id, ep.number);
       btn.innerHTML = `
         <div class="ep-thumb"><div class="no-img">${ep.number}</div></div>
         <div class="ep-info">
@@ -186,25 +208,23 @@ const relations =
 
     if (startBtn) {
       startBtn.onclick = () =>
-        isManual ? showFallback() : loadEpisode(episodes[0].id, 1);
+        isManual ? showFallback(1) : loadEpisode(episodes[0].id, 1);
     }
   }
 
   async function loadEpisode(id: string, num: number) {
-    placeholder!.style.display = "flex";
     loadingOverlay?.classList.remove("hidden");
+    loadingText!.innerText = `Chargement Épisode ${num}...`;
     fallbackUI?.classList.add("hidden");
     video.style.display = "none";
-    updateFallbacks(num);
+    placeholder!.style.display = "flex";
 
     try {
-      const res = await fetch(
-        `https://api-consumet.vercel.app/meta/anilist/watch/${id}`
-      );
+      const res = await fetch(`${API_BASE}/meta/anilist/watch/${id}`);
       const data = await res.json();
       const source =
         data.sources?.find(
-          (s: any) => s.quality === "1080p" || s.quality === "720p"
+          (s: any) => s.quality === "default" || s.quality === "1080p"
         ) || data.sources?.[0];
 
       if (source?.url) {
@@ -215,17 +235,18 @@ const relations =
         throw new Error();
       }
     } catch (e) {
-      showFallback();
+      showFallback(num);
     } finally {
       loadingOverlay?.classList.add("hidden");
     }
   }
 
-  function showFallback() {
+  function showFallback(num: number) {
     placeholder!.style.display = "none";
     video.style.display = "none";
     fallbackUI?.classList.remove("hidden");
-    loadingOverlay?.classList.add("hidden");
+    fbGogo.href = `https://anitaku.to/search.html?keyword=${encodeURIComponent(animeTitle!)}`;
+    fbHi.href = `https://hianime.to/search?keyword=${encodeURIComponent(animeTitle!)}`;
   }
 
   function setupPlayer(url: string, isHls: boolean) {
@@ -252,7 +273,7 @@ const relations =
     video.play().catch(() => {});
   }
 
-  fetchAnimeInfo();
+  fetchEpisodes();
 </script>
 
 <style>
@@ -315,7 +336,7 @@ const relations =
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(2px);
   }
 
@@ -331,7 +352,7 @@ const relations =
   .spinner {
     width: 30px;
     height: 30px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.2);
     border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -351,51 +372,59 @@ const relations =
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 1.5rem;
     padding: 2rem;
     text-align: center;
   }
   .btn-alt {
     background: var(--color-primary);
     color: white;
-    padding: 0.6rem 1.2rem;
+    padding: 0.8rem 1.5rem;
     border-radius: var(--radius-md);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.9rem;
+    transition: transform 0.2s;
+  }
+  .btn-alt:hover {
+    transform: scale(1.05);
   }
 
   .info-section {
-    padding-top: 1.5rem;
+    padding-top: 2rem;
   }
   .anime-title {
-    font-size: 1.6rem;
-    font-weight: 800;
+    font-size: 1.8rem;
+    font-weight: 900;
     margin-bottom: 0.5rem;
   }
   .meta-row {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
   }
   .meta-tag {
     background: #1e293b;
-    padding: 0.2rem 0.6rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 4px;
   }
+  .rating {
+    color: #fbbf24;
+    font-weight: bold;
+  }
   .description {
-    color: #94a3b8;
-    line-height: 1.6;
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-    height: 100px;
+    color: #cbd5e1;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+    max-height: 150px;
     overflow-y: auto;
   }
 
   .relations-section {
-    margin: 2rem 0;
+    margin-bottom: 3rem;
   }
   .relations-scroll {
     display: flex;
@@ -414,7 +443,7 @@ const relations =
   }
   .rel-card img {
     width: 100%;
-    height: 150px;
+    height: 160px;
     object-fit: cover;
   }
   .rel-info {
@@ -423,9 +452,10 @@ const relations =
   .rel-type {
     font-size: 0.6rem;
     color: var(--color-primary);
-    font-weight: bold;
+    font-weight: 800;
     text-transform: uppercase;
     display: block;
+    margin-bottom: 2px;
   }
   .rel-title {
     font-size: 0.75rem;
@@ -438,48 +468,53 @@ const relations =
   }
 
   .section-header {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
     border-left: 4px solid var(--color-primary);
     padding-left: 0.75rem;
+    color: white;
   }
   .episodes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
   }
   :global(.episode-card) {
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
     padding: 0;
     cursor: pointer;
     text-align: left;
+    transition: all 0.2s;
   }
   :global(.episode-card:hover) {
     border-color: var(--color-primary);
+    transform: translateY(-3px);
   }
   :global(.no-img) {
     aspect-ratio: 16/9;
-    background: #000;
+    background: #0f172a;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    font-weight: bold;
+    font-weight: 900;
     color: #334155;
   }
   :global(.ep-info) {
-    padding: 0.5rem;
+    padding: 0.75rem;
   }
   :global(.ep-num) {
     font-size: 0.7rem;
-    color: #64748b;
+    color: var(--color-primary);
+    font-weight: 800;
+    text-transform: uppercase;
   }
   :global(.ep-title) {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: white;
     display: block;
@@ -489,7 +524,7 @@ const relations =
   }
 
   .loading-eps {
-    padding: 2rem;
+    padding: 3rem;
     text-align: center;
     color: var(--color-text-muted);
     width: 100%;
@@ -502,14 +537,19 @@ const relations =
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     background: var(--color-primary);
     border: none;
     color: white;
-    padding: 1rem 2rem;
+    padding: 1.2rem 2.5rem;
     border-radius: var(--radius-md);
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+  }
+  .play-btn-large:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
   }
 </style>

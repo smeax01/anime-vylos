@@ -1,0 +1,460 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getAnimeStreamingInfo } from "../../lib/consumet";
+import { ArrowLeft, Play, Calendar, Star } from "lucide-astro";
+
+export const prerender = false; // Mode serveur SSR
+
+const { id } = Astro.params;
+
+// 1. Fetch Anime Details
+let anime = null;
+let error = null;
+
+try {
+  anime = await getAnimeStreamingInfo(id);
+} catch (e) {
+  error = "Impossible de charger les infos.";
+}
+
+if (!anime) {
+  return Astro.redirect("/404");
+}
+
+const firstEpisode =
+  anime.episodes && anime.episodes.length > 0 ? anime.episodes[0] : null;
+
+// Fallback image if cover is missing
+const coverImage = anime.cover || anime.image || "";
+---
+
+<Layout title={anime.title.romaji || anime.title.english}>
+  <div class="player-page">
+    <!-- Navbar Overlay -->
+    <div class="top-nav">
+      <a href="/" class="back-btn">
+        <ArrowLeft />
+      </a>
+      <span class="nav-title">{anime.title.romaji}</span>
+    </div>
+
+    <!-- Video Player Container -->
+    <div class="video-container" id="video-wrapper">
+      <div
+        id="player-placeholder"
+        class="placeholder"
+        style={`background-image: url(${coverImage})`}
+      >
+        <button
+          id="start-btn"
+          class="play-btn-large"
+          data-episode-id={firstEpisode?.id}
+        >
+          <Play fill="currentColor" size={32} />
+          <span>Lancer l'épisode 1</span>
+        </button>
+      </div>
+      <video id="player" controls crossorigin playsinline></video>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="container info-section">
+      <h1 class="anime-title">{anime.title.romaji || anime.title.english}</h1>
+
+      <div class="meta-row">
+        <span class="meta-tag rating"
+          >★ {anime.rating ? anime.rating / 10 : "?"}</span
+        >
+        <span class="meta-tag">{anime.releaseDate || "N/A"}</span>
+        <span class="meta-tag"
+          >{anime.totalEpisodes ? anime.totalEpisodes + " Eps" : "?"}</span
+        >
+        <span class="meta-tag type">{anime.type}</span>
+      </div>
+
+      <p class="description">
+        {anime.description?.replace(/<[^>]*>?/gm, "")}
+      </p>
+
+      <!-- Genres -->
+      <div class="genres">
+        {anime.genres?.map((g) => <span class="genre-pill">{g}</span>)}
+      </div>
+
+      <!-- Episode List -->
+      <h3 class="section-header">Épisodes</h3>
+      <div class="episodes-grid">
+        {
+          anime.episodes?.map((ep) => (
+            <button
+              class="episode-card"
+              data-episode-id={ep.id}
+              data-ep-number={ep.number}
+            >
+              <div class="ep-thumb">
+                {ep.image ? (
+                  <img src={ep.image} loading="lazy" />
+                ) : (
+                  <div class="no-img">{ep.number}</div>
+                )}
+                <div class="ep-progress" />
+              </div>
+              <div class="ep-info">
+                <span class="ep-num">Épisode {ep.number}</span>
+                <span class="ep-title">
+                  {ep.title || `Épisode ${ep.number}`}
+                </span>
+              </div>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import Hls from "hls.js";
+  import Plyr from "plyr";
+  import "plyr/dist/plyr.css";
+
+  const wrapper = document.getElementById("video-wrapper");
+  const video = document.getElementById("player");
+  const startBtn = document.getElementById("start-btn");
+  const placeholder = document.getElementById("player-placeholder");
+  const episodeButtons = document.querySelectorAll(".episode-card");
+
+  let player;
+
+  async function loadEpisode(episodeId) {
+    if (placeholder) {
+      placeholder.innerHTML = '<div class="loader">Chargement du flux...</div>';
+      placeholder.style.display = "flex";
+      video.style.display = "none";
+    }
+
+    try {
+      const res = await fetch(
+        `https://api-consumet.vercel.app/meta/anilist/watch/${episodeId}`
+      );
+      const data = await res.json();
+
+      const source =
+        data.sources?.find((s) => s.quality === "1080p") ||
+        data.sources?.find((s) => s.quality === "default") ||
+        data.sources?.find((s) => s.quality === "backup") ||
+        data.sources?.[0];
+
+      if (source && source.url) {
+        console.log("Playing:", source.url);
+        setupPlayer(source.url, source.isM3U8 || source.url.includes(".m3u8"));
+
+        if (placeholder) placeholder.style.display = "none";
+        video.style.display = "block";
+      } else {
+        throw new Error("No source found");
+      }
+    } catch (e) {
+      console.error(e);
+      if (placeholder) {
+        placeholder.innerHTML = `
+             <div style="text-align:center; padding: 1rem; background:rgba(0,0,0,0.8); border-radius:8px;">
+               <p style="color:#ef4444; margin-bottom:1rem; font-weight:bold;">Source indisponible</p>
+               <p style="color:#94a3b8; font-size:0.9rem;">L'API publique semble surchargée.</p>
+             </div>
+           `;
+      }
+    }
+  }
+
+  function setupPlayer(sourceUrl, isHls) {
+    if (player) player.destroy();
+
+    if (isHls && Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(sourceUrl);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        video.play().catch(() => {});
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = sourceUrl;
+      video.addEventListener("loadedmetadata", function () {
+        video.play().catch(() => {});
+      });
+    } else {
+      video.src = sourceUrl;
+      video.play().catch(() => {});
+    }
+
+    player = new Plyr(video, {
+      controls: [
+        "play-large",
+        "play",
+        "progress",
+        "current-time",
+        "mute",
+        "volume",
+        "fullscreen",
+      ],
+    });
+  }
+
+  startBtn?.addEventListener("click", () => {
+    const epId = startBtn.dataset.episodeId;
+    if (epId) loadEpisode(epId);
+  });
+
+  episodeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const epId = btn.dataset.episodeId;
+      wrapper.scrollIntoView({ behavior: "smooth" });
+      loadEpisode(epId);
+    });
+  });
+</script>
+
+<style>
+  .player-page {
+    padding-bottom: 80px;
+  }
+
+  .top-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.8) 0%,
+      transparent 100%
+    );
+  }
+
+  .back-btn {
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: var(--radius-md); /* Square */
+    display: flex;
+    backdrop-filter: blur(4px);
+  }
+
+  .nav-title {
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .video-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: black;
+    position: relative;
+    max-height: 60vh;
+  }
+
+  .placeholder {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #0f172a;
+  }
+
+  .placeholder::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .play-btn-large {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-md); /* Square */
+    font-weight: 600;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+    transition: transform 0.2s;
+  }
+
+  .play-btn-large:hover {
+    transform: scale(1.05);
+  }
+
+  #player {
+    width: 100%;
+    height: 100%;
+    display: none;
+  }
+
+  .info-section {
+    padding-top: 1.5rem;
+  }
+
+  .anime-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .meta-tag {
+    background: var(--color-bg-card);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .rating {
+    color: #fbbf24;
+    font-weight: 700;
+    border-color: rgba(251, 191, 36, 0.2);
+  }
+
+  .description {
+    color: #94a3b8;
+    line-height: 1.6;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+
+  .genres {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .genre-pill {
+    color: var(--color-accent);
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .section-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--color-primary);
+    padding-left: 0.75rem;
+  }
+
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .episode-card {
+    background: var(--color-bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md); /* Square */
+    overflow: hidden;
+    text-align: left;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+  }
+
+  .episode-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  .ep-thumb {
+    aspect-ratio: 16/9;
+    background: #000;
+    position: relative;
+    width: 100%;
+  }
+
+  .ep-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+  }
+
+  .no-img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  .ep-info {
+    padding: 0.5rem;
+  }
+
+  .ep-num {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+  }
+
+  .ep-title {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .loader {
+    font-weight: 600;
+    color: var(--color-primary);
+    animation: pulse 1s infinite alternate;
+  }
+
+  @keyframes pulse {
+    from {
+      opacity: 0.5;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

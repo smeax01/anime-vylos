@@ -1,0 +1,201 @@
+---
+import { Home, Search, Heart, User } from "lucide-astro";
+import Logo from "./Logo.astro";
+---
+
+<!-- Desktop Navigation (Top) -->
+<header class="navbar-desktop">
+  <div class="container navbar-content">
+    <div class="nav-left">
+      <Logo />
+      <nav class="nav-links">
+        <a href="/" class="nav-link active">Accueil</a>
+        <a href="/search" class="nav-link">Parcourir</a>
+        <a href="/favorites" class="nav-link">Favoris</a>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      <div class="search-trigger">
+        <Search size={20} class="text-muted" />
+        <span>Rechercher...</span>
+      </div>
+      <a href="/profile" class="profile-btn">
+        <User size={20} />
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Navigation (Bottom) -->
+<nav class="navbar-mobile">
+  <a href="/" class="mobile-link active">
+    <Home size={24} />
+    <span>Accueil</span>
+  </a>
+  <a href="/search" class="mobile-link">
+    <Search size={24} />
+    <span>Rech.</span>
+  </a>
+  <div class="mobile-link-highlight-wrapper">
+    <div class="mobile-link-highlight">
+      <Logo scale={0.6} />
+    </div>
+  </div>
+  <a href="/favorites" class="mobile-link">
+    <Heart size={24} />
+    <span>Favoris</span>
+  </a>
+  <a href="/profile" class="mobile-link">
+    <User size={24} />
+    <span>Profil</span>
+  </a>
+</nav>
+
+<style>
+  /* --- Desktop Styles --- */
+  .navbar-desktop {
+    display: none; /* Hidden on mobile by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-height-desktop);
+    background: rgba(2, 6, 23, 0.9); /* Dark Blue */
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1000;
+  }
+
+  /* --- Mobile Styles --- */
+  .navbar-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-height-mobile);
+    background: #0f172a; /* Slate 900 */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    width: 60px;
+    transition: color 0.2s;
+  }
+
+  .mobile-link.active {
+    color: var(--color-primary);
+  }
+
+  /* Center Logo Bump on Mobile */
+  .mobile-link-highlight-wrapper {
+    position: relative;
+    top: -15px;
+    width: 60px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .mobile-link-highlight {
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary);
+    border-radius: var(--radius-md); /* SQUARE LOOK */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    border: 3px solid var(--color-bg-main);
+    transform: rotate(45deg); /* Diamond shape */
+  }
+
+  /* Un-rotate logo inside so it's upright */
+  .mobile-link-highlight :global(svg) {
+    transform: rotate(-45deg) scale(0.5);
+  }
+
+  /* Responsive Logic */
+  @media (min-width: 768px) {
+    .navbar-desktop {
+      display: block;
+    }
+    .navbar-mobile {
+      display: none;
+    }
+  }
+
+  /* Desktop Inner Layout */
+  .navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--color-text-main);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .search-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md); /* SQUARE LOOK */
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .profile-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--color-primary);
+    border-radius: var(--radius-md); /* SQUARE LOOK */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+</style>

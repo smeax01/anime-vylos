@@ -1,0 +1,181 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import AnimeCard from "../components/AnimeCard.astro";
+import { getTrendingAnime, getPopularAnime } from "../lib/anilist";
+import { Flame, Star, History } from "lucide-astro";
+
+// Fetch Data Server-Side
+let trending = [];
+let popular = [];
+let error = null;
+
+try {
+  trending = await getTrendingAnime(10);
+  popular = await getPopularAnime(10);
+} catch (e) {
+  console.error("Failed to fetch AniList data:", e);
+  error = "Mode hors ligne ou erreur API.";
+}
+
+// Select Hero Item (First trending item)
+const heroAnime = trending.length > 0 ? trending[0] : null;
+const heroProps = heroAnime
+  ? {
+      id: heroAnime.id,
+      title: heroAnime.title.romaji || heroAnime.title.english,
+      description: heroAnime.description,
+      image: heroAnime.bannerImage || heroAnime.coverImage.extraLarge,
+      genres: heroAnime.genres,
+      rating: heroAnime.averageScore,
+    }
+  : null;
+---
+
+<Layout title="Accueil">
+  {
+    heroProps ? (
+      <Hero {...heroProps} />
+    ) : (
+      <div class="error-banner">
+        <p>{error || "Chargement..."}</p>
+      </div>
+    )
+  }
+
+  <div class="content-wrapper">
+    <!-- Trending Section -->
+    <section class="container section">
+      <h2 class="section-title">
+        <Flame class="icon-fire" size={24} />
+        Tendances
+      </h2>
+      <div class="horizontal-scroll">
+        {
+          trending.slice(1).map((anime) => (
+            <a href={`/anime/${anime.id}`} class="card-link">
+              <AnimeCard
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
+                rating={
+                  anime.averageScore ? anime.averageScore / 10 : undefined
+                }
+              />
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Popular Section -->
+    <section class="container section">
+      <h2 class="section-title">
+        <Star class="icon-star" size={24} />
+        Populaires
+      </h2>
+      <div class="horizontal-scroll">
+        {
+          popular.map((anime) => (
+            <a href={`/anime/${anime.id}`} class="card-link">
+              <AnimeCard
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
+              />
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Placeholder for History/Continue Watching (Local State later) -->
+    <section class="container section">
+      <h2 class="section-title">
+        <History class="icon-history" size={24} />
+        Reprendre
+      </h2>
+      <div class="empty-state">
+        <p>Connectez-vous pour synchroniser votre progression.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="spacer"></div>
+</Layout>
+
+<style>
+  .content-wrapper {
+    position: relative;
+    z-index: 20;
+    margin-top: -3rem; /* Overlap hero */
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .icon-fire {
+    color: #f59e0b;
+  }
+  .icon-star {
+    color: #eab308;
+  }
+  .icon-history {
+    color: var(--color-primary);
+  }
+
+  .horizontal-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+    margin: 0 -1.5rem; /* Full width on mobile */
+    padding: 0 1.5rem 1rem 1.5rem; /* Padding inside scroll container */
+  }
+
+  .horizontal-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .card-link {
+    display: block;
+    transition: transform 0.2s;
+  }
+
+  .card-link:active {
+    transform: scale(0.95);
+  }
+
+  .empty-state {
+    background: var(--color-bg-card);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    border: 1px dashed #334155;
+  }
+
+  .spacer {
+    height: 100px;
+  }
+
+  .error-banner {
+    height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+  }
+</style>

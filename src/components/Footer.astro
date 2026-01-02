@@ -1,0 +1,123 @@
+---
+import Logo from "./Logo.astro";
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <Logo />
+        <p class="tagline">L'expérience anime ultime.</p>
+        <div class="socials">
+          <a href="#" class="social-link">Twitter</a>
+          <a href="#" class="social-link">Instagram</a>
+          <a href="#" class="social-link">Discord</a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="link-group">
+          <h4>Navigation</h4>
+          <a href="#">Populaire</a>
+          <a href="#">Simulcast</a>
+          <a href="#">Calendrier</a>
+        </div>
+        <div class="link-group">
+          <h4>Compte</h4>
+          <a href="#">Connexion</a>
+          <a href="#">Inscription</a>
+          <a href="#">Abonnement</a>
+        </div>
+        <div class="link-group">
+          <h4>Support</h4>
+          <a href="#">Aide</a>
+          <a href="#">Contact</a>
+          <a href="#">Conditions</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Vylos. Tous droits réservés.</p>
+      <p>Fait avec passion pour les fans.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: #000;
+    border-top: 1px solid #27272a;
+    padding: 4rem 0 2rem;
+    margin-top: auto;
+  }
+
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4rem;
+    margin-bottom: 4rem;
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 300px;
+  }
+
+  .tagline {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  .socials {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .social-link {
+    color: white;
+    font-weight: 500;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .social-link:hover {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 4rem;
+    flex-wrap: wrap;
+  }
+
+  .link-group h4 {
+    color: white;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .link-group a {
+    display: block;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+    transition: color 0.2s;
+  }
+
+  .link-group a:hover {
+    color: var(--color-primary);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid #27272a;
+    padding-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    color: #52525b;
+    font-size: 0.875rem;
+  }
+</style>

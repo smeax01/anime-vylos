@@ -1,0 +1,143 @@
+---
+import { Play, Plus } from "lucide-astro";
+
+interface Props {
+  image: string;
+  title: string;
+  type: string;
+  rating?: number;
+}
+
+const { image, title, type, rating } = Astro.props;
+---
+
+<div class="anime-card">
+  <div class="cover-wrapper">
+    <img src={image} alt={title} loading="lazy" />
+    <div class="overlay-actions">
+      <button class="play-btn">
+        <Play size={24} fill="currentColor" />
+      </button>
+      <button class="add-btn">
+        <Plus size={20} />
+      </button>
+    </div>
+    {rating && <span class="rating">★ {rating}</span>}
+  </div>
+  <div class="info">
+    <h3 class="title">{title}</h3>
+    <p class="type">{type}</p>
+  </div>
+</div>
+
+<style>
+  .anime-card {
+    width: 140px; /* More compact for mobile */
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  /* Responsive Width */
+  @media (min-width: 768px) {
+    .anime-card {
+      width: 180px;
+    }
+  }
+
+  .cover-wrapper {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 2/3;
+    margin-bottom: 0.5rem;
+    background: #1e293b; /* Skeleton color */
+  }
+
+  .cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .overlay-actions {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  /* Show overlay on touch for mobile, hover for desktop? 
+     Actually, on mobile, we might just want to click the card to open details.
+     Let's keep hover effect for desktop mainly.
+  */
+
+  @media (hover: hover) {
+    .anime-card:hover .overlay-actions {
+      opacity: 1;
+    }
+    .anime-card:hover img {
+      transform: scale(1.1);
+    }
+  }
+
+  .play-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .add-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rating {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fbbf24;
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    backdrop-filter: blur(2px);
+  }
+
+  .title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-text-main);
+    margin-bottom: 2px;
+  }
+
+  .type {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+</style>

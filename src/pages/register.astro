@@ -72,42 +72,36 @@ export const prerender = true;
 <script>
   const form = document.getElementById("register-form") as HTMLFormElement;
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
-    const username = formData.get("username") as string;
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const username = formData.get("username");
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-    // Local DB simulation
-    const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "register", username, email, password }),
+      });
 
-    if (users.find((u: any) => u.username === username || u.email === email)) {
-      alert("Utilisateur ou email déjà existant.");
-      return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Save session locally for instant UI update
+      localStorage.setItem(
+        "vylos_session",
+        JSON.stringify({
+          ...data.user,
+          stats: { episodesSeen: 0, watchedTime: 0, completed: 0 },
+        })
+      );
+
+      window.location.href = "/profile";
+    } catch (err: any) {
+      alert(err.message || "Erreur lors de l'inscription");
     }
-
-    const newUser = {
-      username,
-      email,
-      password, // In a real app, this should be hashed on the server
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-      joinedAt: new Date().toISOString(),
-      stats: {
-        watchedTime: 0,
-        completed: 0,
-        episodesSeen: 0,
-      },
-    };
-
-    users.push(newUser);
-    localStorage.setItem("vylos_users", JSON.stringify(users));
-
-    // Auto login
-    localStorage.setItem("vylos_session", JSON.stringify(newUser));
-
-    // Redirect
-    window.location.href = "/profile";
   });
 </script>
 

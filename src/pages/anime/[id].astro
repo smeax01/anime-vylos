@@ -195,7 +195,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     return data ? JSON.parse(data) : { lastEp: 1, history: [] };
   }
 
-  function saveProgress(ep: number) {
+  async function saveProgress(ep: number) {
     const progress = getProgress();
     const isNewEpisode = !progress.history.includes(ep);
 
@@ -203,13 +203,15 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     if (isNewEpisode) progress.history.push(ep);
     localStorage.setItem(`vylos_progress_${animeId}`, JSON.stringify(progress));
 
-    // Update Global History
+    // Update Global History (LocalStorage)
     const globalHistory = JSON.parse(
       localStorage.getItem("vylos_global_history") || "[]"
     );
-    const existingIndex = globalHistory.findIndex((a: any) => a.id === animeId);
+    const existingIndex = globalHistory.findIndex(
+      (a: any) => a.id === animeId.toString()
+    );
     const animeEntry = {
-      id: animeId,
+      id: animeId.toString(),
       title: animeTitle,
       image: animeCover,
       type: animeType,
@@ -224,37 +226,60 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       JSON.stringify(globalHistory.slice(0, 20))
     );
 
-    // Update User Stats if logged in
+    // Sync with Database if logged in
     const sessionStr = localStorage.getItem("vylos_session");
-    if (sessionStr && isNewEpisode) {
+    if (sessionStr) {
       const user = JSON.parse(sessionStr);
-      user.stats.episodesSeen += 1;
 
-      // Sync with users list
-      const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
-      const userIdx = users.findIndex((u: any) => u.email === user.email);
-      if (userIdx !== -1) {
-        users[userIdx].stats.episodesSeen += 1;
-        localStorage.setItem("vylos_users", JSON.stringify(users));
+      // Update DB history
+      fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sync-history",
+          userId: user.id,
+          animeId: animeId.toString(),
+          lastEp: ep,
+          progressJson: JSON.stringify(progress),
+        }),
+      }).catch((e) => console.error("History sync failed", e));
+
+      if (isNewEpisode) {
+        user.stats.episodesSeen += 1;
+        localStorage.setItem("vylos_session", JSON.stringify(user));
+
+        // Update DB User Entry (episodes count)
+        fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "update-stats",
+            userId: user.id,
+            episodesSeen: user.stats.episodesSeen,
+          }),
+        }).catch((e) => console.error("Stats update failed", e));
       }
-      localStorage.setItem("vylos_session", JSON.stringify(user));
     }
 
     updateUIProgress();
   }
 
-  function toggleFavorite() {
+  async function toggleFavorite() {
     const favorites = JSON.parse(
       localStorage.getItem("vylos_favorites") || "[]"
     );
     const index = favorites.findIndex(
       (fav: any) => fav.id === animeId.toString()
     );
+    const sessionStr = localStorage.getItem("vylos_session");
+    const user = sessionStr ? JSON.parse(sessionStr) : null;
+    let isFavorite = false;
 
     if (index > -1) {
       favorites.splice(index, 1);
       favIcon?.classList.remove("active");
     } else {
+      isFavorite = true;
       favorites.push({
         id: animeId.toString(),
         title: animeTitle,
@@ -264,6 +289,23 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       favIcon?.classList.add("active");
     }
     localStorage.setItem("vylos_favorites", JSON.stringify(favorites));
+
+    // Sync with DB
+    if (user) {
+      fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sync-favorite",
+          userId: user.id,
+          isFavorite,
+          animeId: animeId.toString(),
+          title: animeTitle,
+          image: animeCover,
+          type: animeType,
+        }),
+      }).catch((e) => console.error("Favorite sync failed", e));
+    }
   }
 
   function updateUIProgress() {

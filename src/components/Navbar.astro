@@ -44,10 +44,18 @@ const isActive = (path: string) =>
           class="search-input"
         />
       </form>
+
+      <div id="auth-buttons" class="hidden">
+        <a href="/login" class="btn-login">Connexion</a>
+        <a href="/register" class="btn-register">S'inscrire</a>
+      </div>
+
       <a
         href="/profile"
         id="desktop-profile-btn"
-        class={isActive("/profile") ? "profile-link active" : "profile-link"}
+        class={isActive("/profile")
+          ? "profile-link active hidden"
+          : "profile-link hidden"}
       >
         <div class="avatar-placeholder">
           <User size={20} />
@@ -88,54 +96,84 @@ const isActive = (path: string) =>
     <LifeBuoy size={24} />
     <span>Aide</span>
   </a>
-  <a
-    href="/profile"
-    id="mobile-profile-btn"
-    class={isActive("/profile") ? "mobile-link active" : "mobile-link"}
-  >
-    <div class="avatar-placeholder-mobile">
+
+  <!-- Profile/Login logic handled by script -->
+  <div id="mobile-auth-target" class="mobile-link-container">
+    <a href="/login" id="mobile-login-link" class="mobile-link">
       <User size={24} />
-    </div>
-    <img
-      id="mobile-avatar"
-      src=""
-      alt="Avatar"
-      class="avatar-img-mobile hidden"
-    />
-    <span>Profil</span>
-  </a>
+      <span>Connexion</span>
+    </a>
+    <a
+      href="/profile"
+      id="mobile-profile-btn"
+      class={isActive("/profile")
+        ? "mobile-link active hidden"
+        : "mobile-link hidden"}
+    >
+      <div class="avatar-placeholder-mobile">
+        <User size={24} />
+      </div>
+      <img
+        id="mobile-avatar"
+        src=""
+        alt="Avatar"
+        class="avatar-img-mobile hidden"
+      />
+      <span>Profil</span>
+    </a>
+  </div>
 </nav>
 
 <script>
   function updateNavbar() {
     const sessionStr = localStorage.getItem("vylos_session");
+
+    // Desktop elements
+    const authButtons = document.getElementById("auth-buttons");
+    const profileBtn = document.getElementById("desktop-profile-btn");
+    const desktopAvatar = document.getElementById(
+      "desktop-avatar"
+    ) as HTMLImageElement;
+    const desktopPlaceholder = document.querySelector(
+      "#desktop-profile-btn .avatar-placeholder"
+    );
+
+    // Mobile elements
+    const mobileLogin = document.getElementById("mobile-login-link");
+    const mobileProfile = document.getElementById("mobile-profile-btn");
+    const mobileAvatar = document.getElementById(
+      "mobile-avatar"
+    ) as HTMLImageElement;
+    const mobilePlaceholder = document.querySelector(
+      "#mobile-profile-btn .avatar-placeholder-mobile"
+    );
+
     if (sessionStr) {
       const user = JSON.parse(sessionStr);
 
-      const desktopAvatar = document.getElementById(
-        "desktop-avatar"
-      ) as HTMLImageElement;
-      const mobileAvatar = document.getElementById(
-        "mobile-avatar"
-      ) as HTMLImageElement;
-      const desktopPlaceholder = document.querySelector(
-        "#desktop-profile-btn .avatar-placeholder"
-      );
-      const mobilePlaceholder = document.querySelector(
-        "#mobile-profile-btn .avatar-placeholder-mobile"
-      );
-
+      // Desktop
+      authButtons?.classList.add("hidden");
+      profileBtn?.classList.remove("hidden");
       if (desktopAvatar && user.avatar) {
         desktopAvatar.src = user.avatar;
         desktopAvatar.classList.remove("hidden");
         desktopPlaceholder?.classList.add("hidden");
       }
 
+      // Mobile
+      mobileLogin?.classList.add("hidden");
+      mobileProfile?.classList.remove("hidden");
       if (mobileAvatar && user.avatar) {
         mobileAvatar.src = user.avatar;
         mobileAvatar.classList.remove("hidden");
         mobilePlaceholder?.classList.add("hidden");
       }
+    } else {
+      // Not logged in
+      authButtons?.classList.remove("hidden");
+      profileBtn?.classList.add("hidden");
+      mobileLogin?.classList.remove("hidden");
+      mobileProfile?.classList.add("hidden");
     }
   }
 
@@ -280,7 +318,35 @@ const isActive = (path: string) =>
   .nav-right {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  #auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-login {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .btn-register {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    transition: all 0.2s;
+  }
+
+  .btn-register:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.5);
   }
 
   .search-bar-inline {

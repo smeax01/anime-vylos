@@ -58,27 +58,35 @@ export const prerender = true;
 <script>
   const form = document.getElementById("login-form") as HTMLFormElement;
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-    const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
-    const user = users.find(
-      (u: any) => u.email === email && u.password === password
-    );
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", email, password }),
+      });
 
-    if (!user) {
-      alert("Email ou mot de passe incorrect.");
-      return;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Save session
+      localStorage.setItem(
+        "vylos_session",
+        JSON.stringify({
+          ...data.user,
+          stats: { episodesSeen: data.user.stats_episodes_seen || 0 },
+        })
+      );
+
+      window.location.href = "/profile";
+    } catch (err: any) {
+      alert(err.message || "Erreur lors de la connexion");
     }
-
-    // Save session
-    localStorage.setItem("vylos_session", JSON.stringify(user));
-
-    // Redirect
-    window.location.href = "/profile";
   });
 </script>
 

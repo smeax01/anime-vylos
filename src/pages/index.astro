@@ -18,26 +18,41 @@ let latest: any[] = [];
 let error: string | null = null;
 
 try {
-  [popular, simulcasts, latest] = await Promise.all([
-    getPopularAnime(15),
-    getTrendingAnime(15),
-    getLatestAnime(15),
+  const [popData, simData, latData] = await Promise.all([
+    getPopularAnime(20),
+    getTrendingAnime(20),
+    getLatestAnime(20),
   ]);
+
+  // Filter out any anime missing essential data or images
+  const clean = (list: any[]) =>
+    list.filter(
+      (a) => a && a.id && (a.coverImage?.large || a.coverImage?.extraLarge)
+    );
+
+  popular = clean(popData);
+  simulcasts = clean(simData);
+  latest = clean(latData);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
   error = "Mode hors ligne ou erreur API.";
 }
 
-// Select Hero Item
-const heroAnime = popular.length > 0 ? popular[0] : null;
+// Select Hero Item (prioritize one with a valid banner image)
+const heroAnime =
+  popular.find((a) => a.bannerImage && a.description) || popular[0];
 const heroProps = heroAnime
   ? {
       id: heroAnime.id,
       title: heroAnime.title.romaji || heroAnime.title.english,
-      description: heroAnime.description,
-      image: heroAnime.bannerImage || heroAnime.coverImage.extraLarge,
-      genres: heroAnime.genres,
-      rating: heroAnime.averageScore,
+      description: heroAnime.description || "Aucune description disponible.",
+      image:
+        heroAnime.bannerImage ||
+        heroAnime.coverImage.extraLarge ||
+        heroAnime.coverImage.large ||
+        "",
+      genres: heroAnime.genres || [],
+      rating: heroAnime.averageScore || 0,
     }
   : null;
 ---
@@ -416,8 +431,8 @@ const heroProps = heroAnime
     .horizontal-scroll {
       margin: 0;
       padding: 0 0 1.5rem 0;
-      overflow-x: visible;
-      flex-wrap: wrap;
+      overflow-x: auto; /* Force horizontal scroll even on desktop */
+      flex-wrap: nowrap;
       gap: 1.75rem;
     }
   }

@@ -18,6 +18,7 @@ export interface Media {
   genres: string[];
   format: string;
   status: string;
+  isAdult: boolean;
   relations?: {
     edges: Array<{
       relationType: string;
@@ -82,11 +83,7 @@ export const getTrendingAnime = async (perPage = 10) => {
           description
           averageScore
           genres
-          episodes
-          nextAiringEpisode {
-             episode
-             timeUntilAiring
-          }
+          isAdult
         }
       }
     }
@@ -112,6 +109,7 @@ export const getPopularAnime = async (perPage = 10) => {
           averageScore
           genres
           format
+          isAdult
         }
       }
     }
@@ -142,6 +140,7 @@ export const getAnimeById = async (id: number) => {
         genres
         averageScore
         format
+        isAdult
         relations {
           edges {
             relationType
@@ -186,6 +185,7 @@ export const getAnimeListByIds = async (ids: number[]) => {
           averageScore
           genres
           format
+          isAdult
         }
       }
     }
@@ -211,6 +211,7 @@ export const getLatestAnime = async (perPage = 10) => {
           averageScore
           genres
           format
+          isAdult
         }
       }
     }

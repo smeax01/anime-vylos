@@ -28,9 +28,18 @@ try {
     getAnimeListByIds(libraryIds),
   ]);
 
-  // Relaxed filtering to ensure we always have content
+  // Relaxed filtering + STRICT NSFW Filter
   const clean = (list: any[]) =>
-    list.filter((a) => a && a.id && a.coverImage?.large);
+    list.filter(
+      (a) =>
+        a &&
+        a.id &&
+        a.coverImage?.large &&
+        !a.isAdult &&
+        !a.genres?.some((g: string) =>
+          ["Hentai", "Ecchi", "Erotica", "Yaoi", "Yuri"].includes(g)
+        )
+    );
 
   popular = clean(libData); // Use library data for "La Librairie Vylos"
   simulcasts = clean(simData);
@@ -102,59 +111,72 @@ const heroProps = heroAnime
             >
           </button>
         </div>
+        <div class="scroll-actions">
+          <button class="scroll-btn prev" data-target="history-list">
+            <Star size={20} class="rotate-180" />
+          </button>
+          <button class="scroll-btn next" data-target="history-list">
+            <Star size={20} />
+          </button>
+        </div>
       </div>
-      <div id="continue-watching-list" class="horizontal-scroll">
-        <!-- Cards injected by JS -->
+      <div class="horizontal-scroll" id="history-list">
+        <!-- Injected via script -->
       </div>
     </section>
 
     <!-- Simulcasts -->
-    <section class="container section">
+    <section class="section">
       <div class="section-header">
         <h2 class="section-title">
-          <Zap class="icon-zap" size={24} />
+          <Zap size={24} />
           Simulcasts de la saison
         </h2>
-        <div class="scroll-controls">
-          <button class="scroll-btn prev" data-target="simulcast-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m15 18-6-6 6-6"></path></svg
-            >
+        <div class="scroll-actions">
+          <button class="scroll-btn prev" data-target="simulcasts-scroll">
+            <Star size={20} class="rotate-180" />
           </button>
-          <button class="scroll-btn next" data-target="simulcast-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m9 18 6-6-6-6"></path></svg
-            >
+          <button class="scroll-btn next" data-target="simulcasts-scroll">
+            <Star size={20} />
           </button>
         </div>
       </div>
-      <div id="simulcast-list" class="horizontal-scroll">
+      <div class="horizontal-scroll" id="simulcasts-scroll">
         {
           simulcasts.map((anime) => (
             <a href={`/anime/${anime.id}`} class="card-link">
               <AnimeCard
                 image={anime.coverImage.large}
                 title={anime.title.romaji || anime.title.english}
-                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
-                rating={
-                  anime.averageScore ? anime.averageScore / 10 : undefined
-                }
+                type={anime.format}
+                rating={anime.averageScore ? anime.averageScore / 10 : 0}
               />
             </a>
           ))
         }
       </div>
     </section>
+
+    <!-- Mes Favoris (Dynamic) -->
+    <div id="favorites-section" class="section hidden">
+      <div class="section-header">
+        <h2 class="section-title">
+          <Star size={24} />
+          Mes coups de cœur
+        </h2>
+        <div class="scroll-actions">
+          <button class="scroll-btn prev" data-target="favorites-list">
+            <Star size={20} class="rotate-180" />
+          </button>
+          <button class="scroll-btn next" data-target="favorites-list">
+            <Star size={20} />
+          </button>
+        </div>
+      </div>
+      <div class="horizontal-scroll" id="favorites-list">
+        <!-- Injected via script -->
+      </div>
+    </div>
 
     <!-- Latest Added -->
     <section class="container section">
@@ -257,30 +279,60 @@ const heroProps = heroAnime
 </Layout>
 
 <script>
-  function renderHistory() {
+  function setupDynamicSections() {
+    // 1. History
+    const historyList = document.getElementById("history-list");
     const historySection = document.getElementById("history-section");
-    const historyList = document.getElementById("continue-watching-list");
-    const globalHistory = JSON.parse(
+    const history = JSON.parse(
       localStorage.getItem("vylos_global_history") || "[]"
     );
 
-    if (globalHistory.length > 0 && historySection && historyList) {
+    if (history.length > 0 && historyList && historySection) {
       historySection.classList.remove("hidden");
-      historyList.innerHTML = globalHistory
+      historyList.innerHTML = history
         .map(
-          (anime: any) => `
-        <a href="/anime/${anime.id}?ep=${anime.lastEp || 1}&lang=${anime.lang || "vostfr"}" class="card-link">
+          (a: any) => `
+        <a href="/anime/${a.id}?ep=${a.lastEp || 1}" class="card-link">
           <div class="anime-card">
             <div class="cover-wrapper">
-              <img src="${anime.image}" alt="${anime.title}" loading="lazy" />
+              <img src="${a.image}" alt="${a.title}" loading="lazy" />
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: 100%"></div>
               </div>
-              <div class="ep-tag">${anime.lang?.toUpperCase() || "VOSTFR"} • Ép. ${anime.lastEp}</div>
+              <div class="ep-tag">Ép. ${a.lastEp}</div>
             </div>
             <div class="info">
-              <h3 class="title">${anime.title}</h3>
-              <p class="type">${anime.type}</p>
+              <h3 class="title">${a.title}</h3>
+              <p class="type">${a.type || "Anime"}</p>
+            </div>
+          </div>
+        </a>
+      `
+        )
+        .join("");
+    }
+
+    // 2. Favorites
+    const favList = document.getElementById("favorites-list");
+    const favSection = document.getElementById("favorites-section");
+    const favorites = JSON.parse(
+      localStorage.getItem("vylos_favorites") || "[]"
+    );
+
+    if (favorites.length > 0 && favList && favSection) {
+      favSection.classList.remove("hidden");
+      favList.innerHTML = favorites
+        .map(
+          (a: any) => `
+        <a href="/anime/${a.id}" class="card-link">
+          <div class="anime-card">
+            <div class="cover-wrapper">
+              <img src="${a.image}" alt="${a.title}" loading="lazy" />
+              <div class="rating">★ Fav</div>
+            </div>
+            <div class="info">
+              <h3 class="title">${a.title}</h3>
+              <p class="type">${a.type || "Anime"}</p>
             </div>
           </div>
         </a>

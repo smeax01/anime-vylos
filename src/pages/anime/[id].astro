@@ -275,53 +275,59 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     return [clean];
   }
 
-  async function fetchSources(lang: string) {
-    const slug = getSlugs(animeTitle)[0];
-    errorBox?.classList.add("hidden");
-    loader!.style.display = "flex";
-    statusText!.innerText = `Recherche en ${lang.toUpperCase()}...`;
-
-    try {
-      const res = await fetch(`/api/as-source?slug=${slug}&lang=${lang}`);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      return data.sources;
-    } catch (e) {
-      return null;
-    }
-  }
-
+  // --- API ---
   async function switchLang(lang: string) {
     activeLang = lang;
-    langBtns.forEach((btn) =>
-      btn.classList.toggle("active", btn.getAttribute("data-lang") === lang)
-    );
+    langBtns.forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+    });
 
-    const sources = await fetchSources(lang);
-    if (sources && Object.keys(sources).length > 0) {
+    statusText!.innerText = `Chargement des sources ${lang.toUpperCase()}...`;
+    loader!.style.display = "flex";
+    errorBox!.classList.add("hidden");
+
+    const sources = await searchAnimeSama(lang);
+
+    if (sources) {
       currentSources = sources;
-      // Prioritize eps3 (Sibnet)
-      activeServer = currentSources.eps3
-        ? "eps3"
-        : Object.keys(currentSources)[0];
+      // Preference: Sibnet (eps3) > Previous Server > First available
+      const lastServer = getProgress().server;
+      activeServer = currentSources[lastServer]
+        ? lastServer
+        : currentSources.eps3
+          ? "eps3"
+          : Object.keys(currentSources)[0];
+
       renderServers();
       renderEpisodes();
       loadVideo(currentEp);
     } else {
       loader!.style.display = "none";
-      errorBox?.classList.remove("hidden");
-      epList!.innerHTML = "";
-      serverBox!.innerHTML = "";
-      frame.src = "about:blank";
+      errorBox!.classList.remove("hidden");
+      statusText!.innerText = `Aucune source trouvée en ${lang.toUpperCase()} pour cet animé.`;
     }
+  }
+
+  async function searchAnimeSama(lang: string) {
+    const slugs = getSlugs(animeTitle);
+    for (const slug of slugs) {
+      try {
+        const res = await fetch(`/api/as-source?slug=${slug}&lang=${lang}`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data.sources && Object.keys(data.sources).length > 0)
+          return data.sources;
+      } catch (e) {}
+    }
+    return null;
   }
 
   function renderServers() {
     serverBox!.innerHTML = "";
     const nameMap: any = {
-      eps1: "Source 1",
-      eps2: "Source 2",
-      eps3: "Sibnet",
+      eps1: "Principal",
+      eps2: "Flash",
+      eps3: "Sibnet (Best)",
       eps4: "Sendvid",
     };
 
@@ -336,6 +342,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
           activeServer = key;
           renderServers();
           loadVideo(currentEp);
+          saveProgress(currentEp); // Save server choice
         };
         serverBox!.appendChild(btn);
       });
@@ -350,9 +357,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       btn.className = `ep-chip ${num === currentEp ? "active" : ""}`;
       btn.innerText = num.toString();
       btn.dataset.num = num.toString();
-      btn.onclick = () => {
-        loadVideo(num);
-      };
+      btn.onclick = () => loadVideo(num);
       epList!.appendChild(btn);
     });
     updateUIProgress();
@@ -370,7 +375,6 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       frame.src = url;
       saveProgress(num);
 
-      // Update chips active state
       document
         .querySelectorAll(".ep-chip")
         .forEach((c) => c.classList.remove("active"));
@@ -379,9 +383,9 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
       setTimeout(() => {
         loader!.style.display = "none";
-      }, 1500);
+      }, 1000);
     } else {
-      statusText!.innerText = "Épisode non disponible sur ce miroir.";
+      statusText!.innerText = "Épisode non disponible sur ce serveur.";
       loader!.style.display = "none";
     }
   }
@@ -389,18 +393,26 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   // --- INIT ---
   async function init() {
     checkFavorite();
-    const progress = getProgress();
-    currentEp = progress.lastEp;
 
-    await switchLang("vostfr"); // Start with VOSTFR as default
+    // Check URL params first, then localStorage
+    const params = new URLSearchParams(window.location.search);
+    const saved = getProgress();
+
+    currentEp = Number(params.get("ep")) || saved.lastEp || 1;
+    const startLang = params.get("lang") || saved.lang || "vostfr";
+    activeServer = saved.server || "eps3";
+
+    await switchLang(startLang);
   }
 
   favBtn?.addEventListener("click", toggleFavorite);
-
   langBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const lang = btn.getAttribute("data-lang");
-      if (lang && lang !== activeLang) switchLang(lang);
+      if (lang && lang !== activeLang) {
+        // currentEp = 1; // Reset ep if switching lang manually? No, keep it.
+        switchLang(lang);
+      }
     });
   });
 

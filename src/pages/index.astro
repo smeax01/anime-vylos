@@ -2,23 +2,33 @@
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
 import AnimeCard from "../components/AnimeCard.astro";
-import { getPopularAnime } from "../lib/anilist";
-import { Star, History } from "lucide-astro";
+import {
+  getPopularAnime,
+  getTrendingAnime,
+  getLatestAnime,
+} from "../lib/anilist";
+import { Star, History, Zap, Clock } from "lucide-astro";
 
 export const prerender = false;
 
 // Fetch Data Server-Side
 let popular: any[] = [];
+let simulcasts: any[] = [];
+let latest: any[] = [];
 let error: string | null = null;
 
 try {
-  popular = await getPopularAnime(20);
+  [popular, simulcasts, latest] = await Promise.all([
+    getPopularAnime(15),
+    getTrendingAnime(15),
+    getLatestAnime(15),
+  ]);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
   error = "Mode hors ligne ou erreur API.";
 }
 
-// Select Hero Item (First popular item)
+// Select Hero Item
 const heroAnime = popular.length > 0 ? popular[0] : null;
 const heroProps = heroAnime
   ? {
@@ -52,6 +62,54 @@ const heroProps = heroAnime
       </h2>
       <div id="continue-watching-list" class="horizontal-scroll">
         <!-- Cards injected by JS -->
+      </div>
+    </section>
+
+    <!-- Simulcasts -->
+    <section class="container section">
+      <h2 class="section-title">
+        <Zap class="icon-zap" size={24} />
+        Simulcasts de la saison
+      </h2>
+      <div class="horizontal-scroll">
+        {
+          simulcasts.map((anime) => (
+            <a href={`/anime/${anime.id}`} class="card-link">
+              <AnimeCard
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
+                rating={
+                  anime.averageScore ? anime.averageScore / 10 : undefined
+                }
+              />
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Latest Added -->
+    <section class="container section">
+      <h2 class="section-title">
+        <Clock class="icon-latest" size={24} />
+        Dernières Sorties
+      </h2>
+      <div class="horizontal-scroll">
+        {
+          latest.map((anime) => (
+            <a href={`/anime/${anime.id}`} class="card-link">
+              <AnimeCard
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
+                rating={
+                  anime.averageScore ? anime.averageScore / 10 : undefined
+                }
+              />
+            </a>
+          ))
+        }
       </div>
     </section>
 
@@ -93,17 +151,17 @@ const heroProps = heroAnime
 
     if (globalHistory.length > 0 && historySection && historyList) {
       historySection.classList.remove("hidden");
-      historyList!.innerHTML = globalHistory
+      historyList.innerHTML = globalHistory
         .map(
           (anime: any) => `
-        <a href="/anime/${anime.id}" class="card-link">
+        <a href="/anime/${anime.id}?ep=${anime.lastEp || 1}&lang=${anime.lang || "vostfr"}" class="card-link">
           <div class="anime-card">
             <div class="cover-wrapper">
               <img src="${anime.image}" alt="${anime.title}" loading="lazy" />
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: 100%"></div>
               </div>
-              <div class="ep-tag">Ép. ${anime.lastEp}</div>
+              <div class="ep-tag">${anime.lang?.toUpperCase() || "VOSTFR"} • Ép. ${anime.lastEp}</div>
             </div>
             <div class="info">
               <h3 class="title">${anime.title}</h3>
@@ -117,7 +175,6 @@ const heroProps = heroAnime
     }
   }
 
-  // Run on load
   renderHistory();
 </script>
 
@@ -125,25 +182,37 @@ const heroProps = heroAnime
   .hidden {
     display: none !important;
   }
+
   .content-wrapper {
     position: relative;
     z-index: 20;
-    margin-top: -2.5rem;
+    margin-top: -2rem;
     padding-bottom: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 3rem;
   }
 
   @media (min-width: 768px) {
     .content-wrapper {
-      margin-top: -4rem;
-      gap: 4rem;
+      margin-top: -5rem;
+      gap: 5rem;
+    }
+  }
+
+  .section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @media (min-width: 1200px) {
+    .section {
+      padding: 0;
     }
   }
 
   .section-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
     margin-bottom: 1.25rem;
     color: white;
@@ -151,11 +220,13 @@ const heroProps = heroAnime
     align-items: center;
     gap: 0.75rem;
     letter-spacing: -0.5px;
+    text-transform: uppercase;
   }
 
   @media (min-width: 768px) {
     .section-title {
       font-size: 1.75rem;
+      text-transform: none;
     }
   }
 
@@ -165,6 +236,12 @@ const heroProps = heroAnime
   .icon-history {
     color: var(--color-primary);
   }
+  .icon-zap {
+    color: #8b5cf6;
+  }
+  .icon-latest {
+    color: #10b981;
+  }
 
   .horizontal-scroll {
     display: flex;
@@ -172,16 +249,19 @@ const heroProps = heroAnime
     overflow-x: auto;
     padding-bottom: 1.5rem;
     scrollbar-width: none;
-    margin: 0 -1.5rem;
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
-  @media (min-width: 1400px) {
+  @media (min-width: 1200px) {
     .horizontal-scroll {
       margin: 0;
       padding: 0 0 1.5rem 0;
       overflow-x: visible;
       flex-wrap: wrap;
+      gap: 1.75rem;
     }
   }
 
@@ -193,15 +273,15 @@ const heroProps = heroAnime
     text-decoration: none;
     display: block;
     transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .card-link:active {
+    transform: scale(0.95);
   }
 
   .spacer {
-    height: 80px;
-  }
-  @media (min-width: 768px) {
-    .spacer {
-      height: 120px;
-    }
+    height: 100px;
   }
 
   .error-banner {

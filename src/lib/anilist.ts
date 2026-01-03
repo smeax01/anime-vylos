@@ -193,3 +193,28 @@ export const getAnimeListByIds = async (ids: number[]) => {
   const data = await fetchAniList(query, { ids });
   return data.Page.media as Media[];
 };
+
+export const getLatestAnime = async (perPage = 10) => {
+  const query = `
+    query ($perPage: Int) {
+      Page(perPage: $perPage) {
+        media(sort: UPDATED_AT_DESC, type: ANIME) {
+          id
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+            color
+          }
+          averageScore
+          genres
+          format
+        }
+      }
+    }
+  `;
+  const data = await fetchAniList(query, { perPage });
+  return data.Page.media as Media[];
+};

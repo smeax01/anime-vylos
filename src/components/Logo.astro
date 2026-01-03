@@ -2,39 +2,52 @@
 interface Props {
   scale?: number;
 }
+
 const { scale = 1 } = Astro.props;
 ---
 
-<a href="/" class="logo" style={`transform: scale(${scale})`}>
-  <svg
-    width="100"
-    height="32"
-    viewBox="0 0 100 32"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+<div class="logo" style={`transform: scale(${scale})`}>
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M8 6L16 26L24 6"
+      d="M20 20L50 85L80 20"
       stroke="white"
-      stroke-width="4"
+      stroke-width="12"
       stroke-linecap="round"
       stroke-linejoin="round"></path>
-    <text
-      x="32"
-      y="24"
-      fill="white"
-      font-family="Outfit, sans-serif"
-      font-weight="800"
-      font-size="20"
-      letter-spacing="-1">VYLOS</text
-    >
   </svg>
-</a>
+  <span class="vylos-text">Vylos</span>
+</div>
 
 <style>
   .logo {
     display: flex;
     align-items: center;
-    transform-origin: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .logo:hover {
+    transform: scale(1.05);
+  }
+  svg {
+    width: 32px;
+    height: 32px;
+  }
+  .vylos-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    color: white;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .vylos-text {
+      font-size: 1.25rem;
+    }
+    svg {
+      width: 28px;
+      height: 28px;
+    }
   }
 </style>

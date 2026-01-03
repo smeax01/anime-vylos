@@ -1,9 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import AnimeCard from "../components/AnimeCard.astro";
 import { Search as SearchIcon } from "lucide-astro";
-
-// Client-side search logic will be handled via script for responsiveness
 ---
 
 <Layout title="Recherche">
@@ -20,7 +17,7 @@ import { Search as SearchIcon } from "lucide-astro";
       </div>
     </div>
 
-    <div id="results-grid" class="anime-grid">
+    <div id="results-grid" class="results-grid">
       <!-- Results will appear here -->
       <div class="placeholder-msg">Tapez quelque chose pour commencer...</div>
     </div>
@@ -28,26 +25,34 @@ import { Search as SearchIcon } from "lucide-astro";
 </Layout>
 
 <script>
-  let debounceTimer;
-  const input = document.getElementById("search-input");
+  let debounceTimer: any;
+  const input = document.getElementById("search-input") as HTMLInputElement;
   const grid = document.getElementById("results-grid");
 
   input?.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
-    const query = e.target.value;
+    const target = e.target as HTMLInputElement;
+    const query = target.value;
 
-    if (query.length < 3) return;
+    if (query.trim().length < 2) {
+      if (grid)
+        grid.innerHTML =
+          '<div class="placeholder-msg">Tapez quelque chose pour commencer...</div>';
+      return;
+    }
 
     debounceTimer = setTimeout(async () => {
-      grid.innerHTML = '<div class="loading">Recherche...</div>';
+      if (grid)
+        grid.innerHTML =
+          '<div class="loading"><div class="vylos-loader"></div> Recherche...</div>';
 
       try {
         const queryGraphQL = `
           query ($search: String) {
-            Page(perPage: 20) {
+            Page(perPage: 24) {
               media(search: $search, type: ANIME, sort: POPULARITY_DESC) {
                 id
-                title { romaji English }
+                title { romaji english }
                 coverImage { large }
                 format
                 genres
@@ -68,31 +73,36 @@ import { Search as SearchIcon } from "lucide-astro";
 
         const { data } = await res.json();
 
-        if (data.Page.media.length > 0) {
+        if (grid && data.Page.media.length > 0) {
           grid.innerHTML = data.Page.media
             .map(
-              (anime) => `
+              (anime: any) => `
             <a href="/anime/${anime.id}" class="card-link">
-              <div class="anime-card-mini">
-                 <img src="${anime.coverImage.large}" loading="lazy" />
+              <div class="anime-card">
+                 <div class="cover-wrapper">
+                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" />
+                    <span class="rating">★ ${anime.averageScore ? anime.averageScore / 10 : "?"}</span>
+                 </div>
                  <div class="info">
-                   <h3>${anime.title.romaji || anime.title.english}</h3>
-                   <span>${anime.format} • ${anime.averageScore ? anime.averageScore + "%" : "?"}</span>
+                   <h3 class="title">${anime.title?.romaji || anime.title?.english}</h3>
+                   <p class="type">${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}</p>
                  </div>
               </div>
             </a>
           `
             )
             .join("");
-        } else {
-          grid.innerHTML = '<div class="placeholder-msg">Aucun résultat.</div>';
+        } else if (grid) {
+          grid.innerHTML =
+            '<div class="placeholder-msg">Aucun résultat trouvé pour cette recherche.</div>';
         }
       } catch (err) {
         console.error(err);
-        grid.innerHTML =
-          '<div class="error">Erreur lors de la recherche.</div>';
+        if (grid)
+          grid.innerHTML =
+            '<div class="error">Une erreur est survenue lors de la recherche.</div>';
       }
-    }, 500);
+    }, 400);
   });
 </script>
 
@@ -100,37 +110,61 @@ import { Search as SearchIcon } from "lucide-astro";
   .search-page {
     padding-top: 2rem;
     padding-bottom: 6rem;
+    min-height: 80vh;
+  }
+
+  .search-header {
+    margin-bottom: 2.5rem;
   }
 
   .search-input-wrapper {
     position: relative;
-    background: #1e293b;
-    border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 
   .search-icon {
-    color: var(--color-text-muted);
+    color: var(--color-primary);
   }
 
   input {
     background: transparent;
     border: none;
     color: white;
-    font-size: 1rem;
+    font-size: 1.1rem;
     width: 100%;
     outline: none;
+    font-weight: 500;
   }
 
-  .anime-grid {
+  input::placeholder {
+    color: #475569;
+  }
+
+  .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-top: 2rem;
+  }
+
+  @media (min-width: 500px) {
+    .results-grid {
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .results-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 2rem;
+    }
   }
 
   .placeholder-msg,
@@ -139,46 +173,20 @@ import { Search as SearchIcon } from "lucide-astro";
     grid-column: 1 / -1;
     text-align: center;
     color: var(--color-text-muted);
-    margin-top: 2rem;
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.1rem;
   }
 
-  /* Mini Card Style injection for innerHTML */
-  :global(.card-link) {
+  .card-link {
+    text-decoration: none;
     display: block;
-    transition: transform 0.2s;
-  }
-  :global(.card-link:hover) {
-    transform: translateY(-4px);
   }
 
-  :global(.anime-card-mini) {
-    background: #0f172a;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  :global(.anime-card-mini img) {
+  .card-link .anime-card {
     width: 100%;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-  }
-
-  :global(.anime-card-mini .info) {
-    padding: 0.5rem;
-  }
-
-  :global(.anime-card-mini h3) {
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 0.25rem;
-    color: white;
-  }
-
-  :global(.anime-card-mini span) {
-    color: #94a3b8;
-    font-size: 0.75rem;
   }
 </style>

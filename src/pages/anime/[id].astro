@@ -18,10 +18,14 @@ export const prerender = false;
 const { id } = Astro.params;
 const animeId = Number(id);
 
+if (isNaN(animeId)) return Astro.redirect("/404");
+
 let anime = null;
 try {
   anime = await getAnimeById(animeId);
-} catch (e) {}
+} catch (e) {
+  console.error("AniList Fetch Error:", e);
+}
 
 if (!anime) return Astro.redirect("/404");
 
@@ -135,13 +139,13 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
           <p class="description" set:html={anime.description} />
 
           {
-            anime.relations?.edges?.length > 0 && (
+            anime.relations?.edges && anime.relations.edges.length > 0 && (
               <div class="seasons-area">
                 <h3 class="section-title">Relations</h3>
                 <div class="seasons-stack">
                   {anime.relations.edges
-                    .filter((e) => e.node.type === "ANIME")
-                    .map((rel) => (
+                    .filter((e: any) => e.node.type === "ANIME")
+                    .map((rel: any) => (
                       <a href={`/anime/${rel.node.id}`} class="season-link">
                         <img src={rel.node.coverImage.medium} alt="" />
                         <div class="season-info">
@@ -493,8 +497,15 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   /* PLAYER */
   .main-player-section {
     background: #000;
-    padding-top: 70px;
+    padding-top: 60px; /* Reduced for mobile */
   }
+
+  @media (min-width: 768px) {
+    .main-player-section {
+      padding-top: 80px;
+    }
+  }
+
   .player-viewport {
     width: 100%;
     aspect-ratio: 16/9;
@@ -502,6 +513,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     margin: 0 auto;
     position: relative;
     background: #000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
   .stream-iframe {
     width: 100%;
@@ -538,41 +550,57 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     max-width: 1200px;
     margin: 0 auto;
     background: #0f172a;
-    padding: 0.75rem 1rem;
+    padding: 1rem;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-direction: column; /* Column by default on mobile */
     gap: 1rem;
-    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
+
+  @media (min-width: 768px) {
+    .player-toolbar {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+    }
+  }
+
   .toolbar-left {
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (min-width: 480px) {
+    .toolbar-left {
+      flex-direction: row;
+      align-items: center;
+      gap: 1.5rem;
+    }
   }
 
   .lang-selector {
     display: flex;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 3px;
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    width: fit-content;
   }
   .lang-btn {
     background: transparent;
     border: none;
     color: #64748b;
-    padding: 6px 14px;
-    font-size: 0.75rem;
+    padding: 6px 16px;
+    font-size: 0.8rem;
     font-weight: 800;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 7px;
     transition: 0.2s;
   }
   .lang-btn.active {
-    background: #1e293b;
+    background: var(--color-primary);
     color: white;
   }
 
@@ -580,12 +608,20 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
   }
+  .server-selector::-webkit-scrollbar {
+    display: none;
+  }
+
   .toolbar-label {
     font-size: 0.65rem;
     font-weight: 800;
     color: #475569;
     text-transform: uppercase;
+    white-space: nowrap;
   }
   .server-chips {
     display: flex;
@@ -601,46 +637,67 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     font-weight: 700;
     cursor: pointer;
     transition: 0.2s;
+    white-space: nowrap;
   }
   .chip.active {
-    background: var(--color-primary);
-    color: white;
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
   }
 
   .action-btn {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #64748b;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    color: #94a3b8;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 8px;
+    width: 100%; /* Full width on mobile */
+  }
+
+  @media (min-width: 768px) {
+    .action-btn {
+      width: auto;
+    }
   }
 
   /* CONTENT */
   .stream-content {
     padding-top: 2rem;
+    padding-bottom: 5rem;
   }
   .stream-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 2.5rem;
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
-  @media (max-width: 900px) {
+
+  @media (min-width: 1024px) {
     .stream-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 340px;
+      gap: 3rem;
     }
   }
 
   .anime-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 800;
     margin-bottom: 0.75rem;
     line-height: 1.2;
   }
+
+  @media (min-width: 768px) {
+    .anime-title {
+      font-size: 2.25rem;
+    }
+  }
+
   .badges {
     display: flex;
     gap: 0.5rem;
@@ -663,10 +720,10 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
   }
   .section-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -682,16 +739,24 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
   .ep-selector-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
     gap: 8px;
     margin-bottom: 2.5rem;
   }
+
+  @media (min-width: 768px) {
+    .ep-selector-grid {
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 10px;
+    }
+  }
+
   .ep-chip {
     aspect-ratio: 1;
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.05);
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s;
@@ -710,11 +775,11 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
   .ep-chip.watched {
-    border-color: #3b82f666;
+    border-color: rgba(59, 130, 246, 0.3);
     color: #94a3b8;
   }
   .ep-chip.watched:not(.active) {
-    background: #1e293b99;
+    background: rgba(30, 41, 59, 0.6);
   }
 
   .description {
@@ -727,7 +792,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.2);
     color: #f87171;
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -745,8 +810,8 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     gap: 1rem;
     text-decoration: none;
     background: #0f172a;
-    padding: 0.5rem;
-    border-radius: 10px;
+    padding: 0.75rem;
+    border-radius: 12px;
     border: 1px solid transparent;
     transition: 0.2s;
   }
@@ -756,9 +821,9 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   }
   .season-link img {
     width: 50px;
-    height: 70px;
+    height: 75px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   .rel-tag {
     font-size: 0.6rem;
@@ -769,7 +834,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     display: block;
   }
   .rel-name {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: white;
     font-weight: 600;
     line-height: 1.3;

@@ -2,16 +2,17 @@
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
 import AnimeCard from "../components/AnimeCard.astro";
-import { getTrendingAnime, getPopularAnime } from "../lib/anilist";
-import { Flame, Star, History } from "lucide-astro";
+import { getPopularAnime } from "../lib/anilist";
+import { Star, History } from "lucide-astro";
+
+export const prerender = false;
 
 // Fetch Data Server-Side
-let trending: any[] = [];
 let popular: any[] = [];
 let error: string | null = null;
 
 try {
-  popular = await getPopularAnime(12);
+  popular = await getPopularAnime(20);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
   error = "Mode hors ligne ou erreur API.";
@@ -43,30 +44,6 @@ const heroProps = heroAnime
   }
 
   <div class="content-wrapper">
-    <!-- Popular Section -->
-    <section class="container section">
-      <h2 class="section-title">
-        <Star class="icon-star" size={24} />
-        La Librairie Vylos
-      </h2>
-      <div class="horizontal-scroll">
-        {
-          popular.map((anime) => (
-            <a href={`/anime/${anime.id}`} class="card-link">
-              <AnimeCard
-                image={anime.coverImage.large}
-                title={anime.title.romaji || anime.title.english}
-                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
-                rating={
-                  anime.averageScore ? anime.averageScore / 10 : undefined
-                }
-              />
-            </a>
-          ))
-        }
-      </div>
-    </section>
-
     <!-- History Section -->
     <section id="history-section" class="container section hidden">
       <h2 class="section-title">
@@ -116,7 +93,7 @@ const heroProps = heroAnime
 
     if (globalHistory.length > 0 && historySection && historyList) {
       historySection.classList.remove("hidden");
-      historyList.innerHTML = globalHistory
+      historyList!.innerHTML = globalHistory
         .map(
           (anime: any) => `
         <a href="/anime/${anime.id}" class="card-link">
@@ -151,39 +128,37 @@ const heroProps = heroAnime
   .content-wrapper {
     position: relative;
     z-index: 20;
-    margin-top: -2rem; /* Reduced overlap for mobile */
+    margin-top: -2.5rem;
     padding-bottom: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 2.5rem;
   }
 
   @media (min-width: 768px) {
     .content-wrapper {
-      margin-top: -3rem;
-      gap: 3rem;
+      margin-top: -4rem;
+      gap: 4rem;
     }
   }
 
   .section-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: var(--color-text-main);
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    color: white;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    letter-spacing: -0.5px;
   }
 
   @media (min-width: 768px) {
     .section-title {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
     }
   }
 
-  .icon-fire {
-    color: #f59e0b;
-  }
   .icon-star {
     color: #eab308;
   }
@@ -193,18 +168,18 @@ const heroProps = heroAnime
 
   .horizontal-scroll {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     overflow-x: auto;
-    padding-bottom: 1rem;
+    padding-bottom: 1.5rem;
     scrollbar-width: none;
-    margin: 0 -1.5rem; /* Full width on mobile */
-    padding: 0 1.5rem 1rem 1.5rem; /* Padding inside scroll container */
+    margin: 0 -1.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
   }
 
   @media (min-width: 1400px) {
     .horizontal-scroll {
       margin: 0;
-      padding: 0 0 1rem 0;
+      padding: 0 0 1.5rem 0;
       overflow-x: visible;
       flex-wrap: wrap;
     }
@@ -215,39 +190,26 @@ const heroProps = heroAnime
   }
 
   .card-link {
+    text-decoration: none;
     display: block;
     transition: transform 0.2s;
   }
 
-  .card-link:active {
-    transform: scale(0.95);
-  }
-
-  .empty-state {
-    background: var(--color-bg-card);
-    padding: 2rem;
-    border-radius: var(--radius-md);
-    text-align: center;
-    color: var(--color-text-muted);
-    border: 1px dashed #334155;
-    font-size: 0.9rem;
-  }
-
   .spacer {
-    height: 60px;
+    height: 80px;
   }
-
   @media (min-width: 768px) {
     .spacer {
-      height: 100px;
+      height: 120px;
     }
   }
 
   .error-banner {
-    height: 50vh;
+    height: 40vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ef4444;
+    color: #f87171;
+    font-weight: 600;
   }
 </style>

@@ -18,6 +18,22 @@ export interface Media {
   genres: string[];
   format: string;
   status: string;
+  relations?: {
+    edges: Array<{
+      relationType: string;
+      node: {
+        id: number;
+        title: {
+          romaji: string;
+          english: string;
+        };
+        coverImage: {
+          medium: string;
+        };
+        type: string;
+      };
+    }>;
+  };
   nextAiringEpisode?: {
     episode: number;
     timeUntilAiring: number;

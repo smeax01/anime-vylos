@@ -6,7 +6,9 @@ import {
   getPopularAnime,
   getTrendingAnime,
   getLatestAnime,
+  getAnimeListByIds,
 } from "../lib/anilist";
+import libraryData from "../data/library.json";
 import { Star, History, Zap, Clock } from "lucide-astro";
 
 export const prerender = false;
@@ -18,17 +20,19 @@ let latest: any[] = [];
 let error: string | null = null;
 
 try {
-  const [popData, simData, latData] = await Promise.all([
+  const libraryIds = libraryData.featured.map((a) => a.id);
+  const [popData, simData, latData, libData] = await Promise.all([
     getPopularAnime(25),
     getTrendingAnime(25),
     getLatestAnime(25),
+    getAnimeListByIds(libraryIds),
   ]);
 
   // Relaxed filtering to ensure we always have content
   const clean = (list: any[]) =>
     list.filter((a) => a && a.id && a.coverImage?.large);
 
-  popular = clean(popData);
+  popular = clean(libData); // Use library data for "La Librairie Vylos"
   simulcasts = clean(simData);
   latest = clean(latData);
 } catch (e) {

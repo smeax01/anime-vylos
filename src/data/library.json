@@ -1,0 +1,14 @@
+{
+  "featured": [
+    { "id": 16498, "title": "Shingeki no Kyojin" },
+    { "id": 11061, "title": "Hunter x Hunter (2011)" },
+    { "id": 101922, "title": "Kimetsu no Yaiba" },
+    { "id": 21087, "title": "One Punch Man" },
+    { "id": 113415, "title": "Jujutsu Kaisen" },
+    { "id": 21459, "title": "Boku no Hero Academia" },
+    { "id": 1535, "title": "Death Note" },
+    { "id": 21, "title": "One Piece" },
+    { "id": 20, "title": "Naruto" },
+    { "id": 1735, "title": "Naruto Shippuden" }
+  ]
+}

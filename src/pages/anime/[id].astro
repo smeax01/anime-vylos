@@ -84,9 +84,9 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
             <button class="lang-btn active" data-lang="vf">VF</button>
           </div>
           <div class="server-selector">
-            <span class="toolbar-label">Miroir :</span>
+            <span class="toolbar-label">Lecteur :</span>
             <div class="server-chips" id="as-servers">
-              <!-- Boutons injectés ici -->
+              <button class="chip active">Sibnet (Sélectionné)</button>
             </div>
           </div>
         </div>
@@ -390,29 +390,8 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   }
 
   function renderServers() {
-    serverBox!.innerHTML = "";
-    const nameMap: any = {
-      eps1: "Principal",
-      eps2: "Flash",
-      eps3: "Sibnet (Best)",
-      eps4: "Sendvid",
-    };
-
-    Object.keys(currentSources)
-      .sort()
-      .forEach((key) => {
-        if (currentSources[key].length === 0) return;
-        const btn = document.createElement("button");
-        btn.className = `chip ${key === activeServer ? "active" : ""}`;
-        btn.innerText = nameMap[key] || `Source ${key}`;
-        btn.onclick = () => {
-          activeServer = key;
-          renderServers();
-          loadVideo(currentEp);
-          saveProgress(currentEp); // Save server choice
-        };
-        serverBox!.appendChild(btn);
-      });
+    serverBox!.innerHTML =
+      '<button class="chip active">Sibnet (Sélectionné)</button>';
   }
 
   function renderEpisodes() {

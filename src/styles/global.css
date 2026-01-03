@@ -28,8 +28,15 @@
   
   /* Layout Mobile First */
   --nav-height-desktop: 70px;
-  --nav-height-mobile: 60px; /* Sligthly smaller bottom bar */
+  --nav-height-mobile: 64px; /* Slightly taller for better touch targets */
   --max-width: 1400px;
+  --nav-height: var(--nav-height-mobile); /* Default */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --nav-height: var(--nav-height-desktop);
+  }
 }
 
 *, *::before, *::after {
@@ -51,7 +58,8 @@ body {
   font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  padding-bottom: var(--nav-height-mobile);
+  /* Bottom padding for mobile navbar, including safe area */
+  padding-bottom: calc(var(--nav-height-mobile) + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
@@ -101,5 +109,6 @@ img {
 .text-gradient {
   background: linear-gradient(to right, #60a5fa, #3b82f6);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }

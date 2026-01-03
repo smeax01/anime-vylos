@@ -20,6 +20,10 @@ if (token) {
     userAvatar = data.data?.Viewer?.avatar?.large;
   } catch (e) {}
 }
+
+const pathname = Astro.url.pathname;
+const isActive = (path: string) =>
+  pathname === path || (path !== "/" && pathname.startsWith(path));
 ---
 
 <!-- Desktop Navigation (Top) -->
@@ -28,10 +32,24 @@ if (token) {
     <div class="nav-left">
       <Logo />
       <nav class="nav-links">
-        <a href="/" class="nav-link">Accueil</a>
-        <a href="/search" class="nav-link">Parcourir</a>
-        <a href="/favorites" class="nav-link">Favoris</a>
-        <a href="/support" class="nav-link">Support</a>
+        <a href="/" class={isActive("/") ? "nav-link active" : "nav-link"}
+          >Accueil</a
+        >
+        <a
+          href="/search"
+          class={isActive("/search") ? "nav-link active" : "nav-link"}
+          >Parcourir</a
+        >
+        <a
+          href="/favorites"
+          class={isActive("/favorites") ? "nav-link active" : "nav-link"}
+          >Favoris</a
+        >
+        <a
+          href="/support"
+          class={isActive("/support") ? "nav-link active" : "nav-link"}
+          >Support</a
+        >
       </nav>
     </div>
 
@@ -45,7 +63,10 @@ if (token) {
           class="search-input"
         />
       </form>
-      <a href="/profile" class="profile-btn">
+      <a
+        href="/profile"
+        class={isActive("/profile") ? "profile-btn active" : "profile-btn"}
+      >
         {
           userAvatar ? (
             <img src={userAvatar} alt="Profile" class="avatar-img" />
@@ -60,11 +81,14 @@ if (token) {
 
 <!-- Mobile Navigation (Bottom) -->
 <nav class="navbar-mobile">
-  <a href="/" class="mobile-link">
+  <a href="/" class={pathname === "/" ? "mobile-link active" : "mobile-link"}>
     <Home size={24} />
     <span>Accueil</span>
   </a>
-  <a href="/search" class="mobile-link">
+  <a
+    href="/search"
+    class={isActive("/search") ? "mobile-link active" : "mobile-link"}
+  >
     <Search size={24} />
     <span>Rech.</span>
   </a>
@@ -73,11 +97,17 @@ if (token) {
       <Logo scale={0.6} />
     </div>
   </div>
-  <a href="/support" class="mobile-link">
+  <a
+    href="/support"
+    class={isActive("/support") ? "mobile-link active" : "mobile-link"}
+  >
     <LifeBuoy size={24} />
     <span>Aide</span>
   </a>
-  <a href="/profile" class="mobile-link">
+  <a
+    href="/profile"
+    class={isActive("/profile") ? "mobile-link active" : "mobile-link"}
+  >
     {
       userAvatar ? (
         <img src={userAvatar} alt="Profile" class="avatar-img-mobile" />
@@ -97,19 +127,23 @@ if (token) {
     left: 0;
     width: 100%;
     height: var(--nav-height-desktop);
-    background: rgba(2, 6, 23, 0.95);
+    background: rgba(2, 6, 23, 0.8);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     z-index: 1000;
   }
+
   .navbar-mobile {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     height: var(--nav-height-mobile);
-    background: #0f172a;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -121,38 +155,53 @@ if (token) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     color: var(--color-text-muted);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
-    width: 60px;
+    width: 20%;
     text-decoration: none;
+    transition: color 0.2s;
   }
+
+  .mobile-link.active,
   .mobile-link:hover {
     color: var(--color-primary);
   }
 
   .mobile-link-highlight-wrapper {
     position: relative;
-    top: -15px;
-    width: 60px;
+    top: -18px;
+    width: 20%;
     display: flex;
     justify-content: center;
+    z-index: 1001;
   }
+
   .mobile-link-highlight {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     background: var(--color-primary);
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-    border: 3px solid var(--color-bg-main);
+    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.4);
+    border: 4px solid var(--color-bg-main);
     transform: rotate(45deg);
+    transition:
+      transform 0.2s,
+      background 0.2s;
   }
-  .mobile-link-highlight :global(svg) {
-    transform: rotate(-45deg) scale(0.5);
+
+  .mobile-link-highlight:active {
+    transform: rotate(45deg) scale(0.9);
+  }
+
+  /* Reset rotation for the logo inside the tilted box */
+  .mobile-link-highlight :global(.logo) {
+    transform: rotate(-45deg) !important;
+    margin-left: -2px; /* Visual centering */
   }
 
   @media (min-width: 768px) {
@@ -185,9 +234,21 @@ if (token) {
     font-size: 0.9rem;
     text-decoration: none;
     transition: color 0.2s;
+    position: relative;
   }
-  .nav-link:hover {
+  .nav-link:hover,
+  .nav-link.active {
     color: white;
+  }
+  .nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 2px;
   }
 
   .nav-right {

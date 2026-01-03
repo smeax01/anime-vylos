@@ -2,25 +2,6 @@
 import { Home, Search, Heart, User, LifeBuoy } from "lucide-astro";
 import Logo from "./Logo.astro";
 
-const token = Astro.cookies.get("anilist_token")?.value;
-let userAvatar = null;
-
-if (token) {
-  try {
-    const query = `query { Viewer { avatar { large } } }`;
-    const res = await fetch("https://graphql.anilist.co", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query }),
-    });
-    const data = await res.json();
-    userAvatar = data.data?.Viewer?.avatar?.large;
-  } catch (e) {}
-}
-
 const pathname = Astro.url.pathname;
 const isActive = (path: string) =>
   pathname === path || (path !== "/" && pathname.startsWith(path));
@@ -65,15 +46,18 @@ const isActive = (path: string) =>
       </form>
       <a
         href="/profile"
-        class={isActive("/profile") ? "profile-btn active" : "profile-btn"}
+        id="desktop-profile-btn"
+        class={isActive("/profile") ? "profile-link active" : "profile-link"}
       >
-        {
-          userAvatar ? (
-            <img src={userAvatar} alt="Profile" class="avatar-img" />
-          ) : (
-            <User size={20} />
-          )
-        }
+        <div class="avatar-placeholder">
+          <User size={20} />
+        </div>
+        <img
+          id="desktop-avatar"
+          src=""
+          alt="Avatar"
+          class="avatar-img hidden"
+        />
       </a>
     </div>
   </div>
@@ -93,9 +77,9 @@ const isActive = (path: string) =>
     <span>Rech.</span>
   </a>
   <div class="mobile-link-highlight-wrapper">
-    <div class="mobile-link-highlight">
+    <a href="/" class="mobile-link-highlight">
       <Logo scale={0.6} />
-    </div>
+    </a>
   </div>
   <a
     href="/support"
@@ -106,18 +90,61 @@ const isActive = (path: string) =>
   </a>
   <a
     href="/profile"
+    id="mobile-profile-btn"
     class={isActive("/profile") ? "mobile-link active" : "mobile-link"}
   >
-    {
-      userAvatar ? (
-        <img src={userAvatar} alt="Profile" class="avatar-img-mobile" />
-      ) : (
-        <User size={24} />
-      )
-    }
+    <div class="avatar-placeholder-mobile">
+      <User size={24} />
+    </div>
+    <img
+      id="mobile-avatar"
+      src=""
+      alt="Avatar"
+      class="avatar-img-mobile hidden"
+    />
     <span>Profil</span>
   </a>
 </nav>
+
+<script>
+  function updateNavbar() {
+    const sessionStr = localStorage.getItem("vylos_session");
+    if (sessionStr) {
+      const user = JSON.parse(sessionStr);
+
+      const desktopAvatar = document.getElementById(
+        "desktop-avatar"
+      ) as HTMLImageElement;
+      const mobileAvatar = document.getElementById(
+        "mobile-avatar"
+      ) as HTMLImageElement;
+      const desktopPlaceholder = document.querySelector(
+        "#desktop-profile-btn .avatar-placeholder"
+      );
+      const mobilePlaceholder = document.querySelector(
+        "#mobile-profile-btn .avatar-placeholder-mobile"
+      );
+
+      if (desktopAvatar && user.avatar) {
+        desktopAvatar.src = user.avatar;
+        desktopAvatar.classList.remove("hidden");
+        desktopPlaceholder?.classList.add("hidden");
+      }
+
+      if (mobileAvatar && user.avatar) {
+        mobileAvatar.src = user.avatar;
+        mobileAvatar.classList.remove("hidden");
+        mobilePlaceholder?.classList.add("hidden");
+      }
+    }
+  }
+
+  // Run on mount
+  updateNavbar();
+
+  // Listen for storage changes (e.g. login/logout)
+  window.addEventListener("storage", updateNavbar);
+</script>
 
 <style>
   .navbar-desktop {
@@ -140,7 +167,7 @@ const isActive = (path: string) =>
     left: 0;
     width: 100%;
     height: var(--nav-height-mobile);
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -155,53 +182,48 @@ const isActive = (path: string) =>
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     color: var(--color-text-muted);
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     width: 20%;
     text-decoration: none;
-    transition: color 0.2s;
+    transition: all 0.2s;
   }
 
-  .mobile-link.active,
-  .mobile-link:hover {
+  .mobile-link.active {
     color: var(--color-primary);
   }
 
   .mobile-link-highlight-wrapper {
     position: relative;
-    top: -18px;
+    top: -15px;
     width: 20%;
     display: flex;
     justify-content: center;
-    z-index: 1001;
   }
 
   .mobile-link-highlight {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     background: var(--color-primary);
-    border-radius: 12px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.4);
-    border: 4px solid var(--color-bg-main);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+    border: 4px solid #020617;
     transform: rotate(45deg);
-    transition:
-      transform 0.2s,
-      background 0.2s;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .mobile-link-highlight:active {
     transform: rotate(45deg) scale(0.9);
   }
 
-  /* Reset rotation for the logo inside the tilted box */
   .mobile-link-highlight :global(.logo) {
     transform: rotate(-45deg) !important;
-    margin-left: -2px; /* Visual centering */
+    margin-left: -2px;
   }
 
   @media (min-width: 768px) {
@@ -219,42 +241,46 @@ const isActive = (path: string) =>
     align-items: center;
     height: 100%;
   }
+
   .nav-left {
     display: flex;
     align-items: center;
-    gap: 2.5rem;
+    gap: 3rem;
   }
   .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
   }
+
   .nav-link {
     color: var(--color-text-muted);
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     text-decoration: none;
     transition: color 0.2s;
     position: relative;
   }
+
   .nav-link:hover,
   .nav-link.active {
     color: white;
   }
+
   .nav-link.active::after {
     content: "";
     position: absolute;
-    bottom: -4px;
+    bottom: -6px;
     left: 0;
     width: 100%;
-    height: 2px;
+    height: 3px;
     background: var(--color-primary);
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   .nav-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .search-bar-inline {
@@ -262,15 +288,19 @@ const isActive = (path: string) =>
     align-items: center;
     gap: 0.75rem;
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.4rem 1rem;
-    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 250px;
-    transition: border-color 0.2s;
+    width: 280px;
+    transition: all 0.2s;
   }
+
   .search-bar-inline:focus-within {
     border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.08);
+    width: 320px;
   }
+
   .search-icon {
     color: #64748b;
   }
@@ -279,31 +309,61 @@ const isActive = (path: string) =>
     border: none;
     outline: none;
     color: white;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     width: 100%;
   }
 
-  .profile-btn {
-    width: 38px;
-    height: 38px;
-    background: var(--color-primary);
-    border-radius: var(--radius-md);
+  .profile-link {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    overflow: hidden;
     text-decoration: none;
+    position: relative;
   }
+
+  .avatar-placeholder,
+  .avatar-placeholder-mobile {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+  }
+
+  .avatar-placeholder-mobile {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .profile-link:hover .avatar-placeholder {
+    background: var(--color-primary);
+    color: white;
+    transform: scale(1.05);
+  }
+
   .avatar-img {
-    width: 100%;
-    height: 100%;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     object-fit: cover;
+    border: 2px solid var(--color-primary);
   }
+
   .avatar-img-mobile {
     width: 24px;
     height: 24px;
-    border-radius: 4px;
+    border-radius: 6px;
     object-fit: cover;
+    border: 1.5px solid var(--color-primary);
+  }
+
+  .hidden {
+    display: none !important;
   }
 </style>

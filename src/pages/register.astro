@@ -1,0 +1,252 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { User, Mail, Lock, UserPlus } from "lucide-astro";
+
+export const prerender = true;
+---
+
+<Layout title="Inscription">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon">
+          <UserPlus size={32} />
+        </div>
+        <h1>Créer un compte</h1>
+        <p>Rejoignez la communauté Vylos</p>
+      </div>
+
+      <form id="register-form" class="auth-form">
+        <div class="input-group">
+          <label for="username">Nom d'utilisateur</label>
+          <div class="input-wrapper">
+            <User size={18} class="field-icon" />
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Smeax"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="email">Email</label>
+          <div class="input-wrapper">
+            <Mail size={18} class="field-icon" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="votre@email.com"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Mot de passe</label>
+          <div class="input-wrapper">
+            <Lock size={18} class="field-icon" />
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="auth-btn"> S'inscrire </button>
+      </form>
+
+      <div class="auth-footer">
+        Déjà un compte ? <a href="/login">Se connecter</a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const form = document.getElementById("register-form") as HTMLFormElement;
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    // Local DB simulation
+    const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
+
+    if (users.find((u: any) => u.username === username || u.email === email)) {
+      alert("Utilisateur ou email déjà existant.");
+      return;
+    }
+
+    const newUser = {
+      username,
+      email,
+      password, // In a real app, this should be hashed on the server
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      joinedAt: new Date().toISOString(),
+      stats: {
+        watchedTime: 0,
+        completed: 0,
+        episodesSeen: 0,
+      },
+    };
+
+    users.push(newUser);
+    localStorage.setItem("vylos_users", JSON.stringify(users));
+
+    // Auto login
+    localStorage.setItem("vylos_session", JSON.stringify(newUser));
+
+    // Redirect
+    window.location.href = "/profile";
+  });
+</script>
+
+<style>
+  .auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .auth-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 3rem;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .auth-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .auth-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-header p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .input-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-left: 0.25rem;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .field-icon {
+    position: absolute;
+    left: 1rem;
+    color: #475569;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.85rem 1rem 0.85rem 3rem;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  .input-wrapper input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+
+  .auth-btn {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+
+  .auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.3);
+  }
+
+  .auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+  }
+
+  .auth-footer a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .auth-card {
+      padding: 2rem;
+    }
+  }
+</style>

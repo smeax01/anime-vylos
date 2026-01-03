@@ -1,27 +1,112 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Heart } from "lucide-astro";
+import { Heart, Search } from "lucide-astro";
+
+export const prerender = true;
 ---
 
 <Layout title="Mes Favoris">
-  <div class="container page-content">
-    <div class="empty-state">
+  <div class="container section">
+    <div class="page-header">
+      <h1 class="page-title">
+        <Heart class="icon-heart" size={32} />
+        Mes Favoris
+      </h1>
+      <p class="page-desc">
+        Retrouvez tous les animés que vous avez ajoutés à votre bibliothèque.
+      </p>
+    </div>
+
+    <div id="favorites-grid" class="results-grid">
+      <!-- Injected by JS -->
+      <div id="loading" class="loading-placeholder">Chargement...</div>
+    </div>
+
+    <div id="empty-favorites" class="empty-state hidden">
       <div class="icon-bg">
         <Heart size={48} />
       </div>
-      <h1>Vos Coups de Cœur</h1>
-      <p>Connectez-vous avec AniList pour voir vos favoris synchronisés ici.</p>
-      <a href="/login" class="btn-primary">Se Connecter (À venir)</a>
+      <h2>Aucun favori pour le moment</h2>
+      <p>
+        Parcourez le catalogue et cliquez sur le coeur pour ajouter des animés
+        ici.
+      </p>
+      <a href="/search" class="btn btn-primary">Explorer le catalogue</a>
     </div>
   </div>
 </Layout>
 
+<script>
+  function renderFavorites() {
+    const grid = document.getElementById("favorites-grid");
+    const emptyState = document.getElementById("empty-favorites");
+    const loading = document.getElementById("loading");
+
+    // In Vylos system, favorites are objects withid, title, image, type
+    const favorites = JSON.parse(
+      localStorage.getItem("vylos_favorites") || "[]"
+    );
+
+    if (loading) loading.classList.add("hidden");
+
+    if (favorites.length === 0) {
+      grid?.classList.add("hidden");
+      emptyState?.classList.remove("hidden");
+      return;
+    }
+
+    if (grid) {
+      grid.classList.remove("hidden");
+      grid.innerHTML = favorites
+        .map(
+          (anime: any) => `
+        <a href="/anime/${anime.id}" class="card-link">
+          <div class="anime-card">
+            <div class="cover-wrapper">
+              <img src="${anime.image}" alt="${anime.title}" loading="lazy" />
+            </div>
+            <div class="info">
+              <h3 class="title">${anime.title}</h3>
+              <p class="type">${anime.type || "Anime"}</p>
+            </div>
+          </div>
+        </a>
+      `
+        )
+        .join("");
+    }
+  }
+
+  renderFavorites();
+</script>
+
 <style>
-  .page-content {
-    height: 70vh;
+  .section {
+    padding-top: 3rem;
+    padding-bottom: 6rem;
+  }
+
+  .page-header {
+    margin-bottom: 3rem;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 1rem;
+    letter-spacing: -1px;
+  }
+
+  .icon-heart {
+    color: #f43f5e;
+  }
+
+  .page-desc {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
   }
 
   .empty-state {
@@ -30,35 +115,33 @@ import { Heart } from "lucide-astro";
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
-    max-width: 400px;
+    padding: 6rem 2rem;
   }
 
   .icon-bg {
-    width: 80px;
-    height: 80px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    width: 96px;
+    height: 96px;
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 1rem;
   }
 
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
   }
 
-  p {
+  .loading-placeholder {
+    padding: 4rem;
+    text-align: center;
     color: var(--color-text-muted);
-    line-height: 1.5;
   }
 
-  .btn-primary {
-    background: var(--color-primary);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
+  .hidden {
+    display: none !important;
   }
 </style>

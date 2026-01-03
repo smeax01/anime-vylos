@@ -197,11 +197,13 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
   function saveProgress(ep: number) {
     const progress = getProgress();
+    const isNewEpisode = !progress.history.includes(ep);
+
     progress.lastEp = ep;
-    if (!progress.history.includes(ep)) progress.history.push(ep);
+    if (isNewEpisode) progress.history.push(ep);
     localStorage.setItem(`vylos_progress_${animeId}`, JSON.stringify(progress));
 
-    // Also update global history for "Continue Watching"
+    // Update Global History
     const globalHistory = JSON.parse(
       localStorage.getItem("vylos_global_history") || "[]"
     );
@@ -222,6 +224,22 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       JSON.stringify(globalHistory.slice(0, 20))
     );
 
+    // Update User Stats if logged in
+    const sessionStr = localStorage.getItem("vylos_session");
+    if (sessionStr && isNewEpisode) {
+      const user = JSON.parse(sessionStr);
+      user.stats.episodesSeen += 1;
+
+      // Sync with users list
+      const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
+      const userIdx = users.findIndex((u: any) => u.email === user.email);
+      if (userIdx !== -1) {
+        users[userIdx].stats.episodesSeen += 1;
+        localStorage.setItem("vylos_users", JSON.stringify(users));
+      }
+      localStorage.setItem("vylos_session", JSON.stringify(user));
+    }
+
     updateUIProgress();
   }
 
@@ -229,13 +247,20 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     const favorites = JSON.parse(
       localStorage.getItem("vylos_favorites") || "[]"
     );
-    const index = favorites.findIndex((id: string) => id === animeId);
+    const index = favorites.findIndex(
+      (fav: any) => fav.id === animeId.toString()
+    );
 
     if (index > -1) {
       favorites.splice(index, 1);
       favIcon?.classList.remove("active");
     } else {
-      favorites.push(animeId);
+      favorites.push({
+        id: animeId.toString(),
+        title: animeTitle,
+        image: animeCover,
+        type: animeType,
+      });
       favIcon?.classList.add("active");
     }
     localStorage.setItem("vylos_favorites", JSON.stringify(favorites));
@@ -257,7 +282,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     const favorites = JSON.parse(
       localStorage.getItem("vylos_favorites") || "[]"
     );
-    if (favorites.includes(animeId)) {
+    if (favorites.some((fav: any) => fav.id === animeId.toString())) {
       favIcon?.classList.add("active");
     }
   }

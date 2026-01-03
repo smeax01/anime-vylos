@@ -11,10 +11,6 @@ interface Props {
 }
 
 const { id, title, description, image, genres, rating } = Astro.props;
-
-const cleanDesc = description
-  ? description.replace(/<[^>]*>?/gm, "").slice(0, 150) + "..."
-  : "";
 ---
 
 <section class="hero">

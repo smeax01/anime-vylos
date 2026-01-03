@@ -19,34 +19,31 @@ let error: string | null = null;
 
 try {
   const [popData, simData, latData] = await Promise.all([
-    getPopularAnime(20),
-    getTrendingAnime(20),
-    getLatestAnime(20),
+    getPopularAnime(25),
+    getTrendingAnime(25),
+    getLatestAnime(25),
   ]);
 
-  // Filter out any anime missing essential data or images
+  // Relaxed filtering to ensure we always have content
   const clean = (list: any[]) =>
-    list.filter(
-      (a) =>
-        a && a.id && a.coverImage?.large && a.description && a.averageScore > 40
-    );
+    list.filter((a) => a && a.id && a.coverImage?.large);
 
-  popular = clean(popData).slice(0, 18);
-  simulcasts = clean(simData).slice(0, 18);
-  latest = clean(latData).slice(0, 18);
+  popular = clean(popData);
+  simulcasts = clean(simData);
+  latest = clean(latData);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
-  error = "Mode hors ligne ou erreur API.";
+  error = "Une erreur est survenue lors de la récupération des données.";
 }
 
-// Select Hero Item (prioritize one with a valid banner image)
+// Select Hero Item (prioritize one with a banner image)
 const heroAnime =
   popular.find((a) => a.bannerImage && a.description) || popular[0];
 const heroProps = heroAnime
   ? {
       id: heroAnime.id,
       title: heroAnime.title.romaji || heroAnime.title.english,
-      description: heroAnime.description || "Aucune description disponible.",
+      description: heroAnime.description || "Découvrez cet anime sur Vylos.",
       image:
         heroAnime.bannerImage ||
         heroAnime.coverImage.extraLarge ||
@@ -435,8 +432,6 @@ const heroProps = heroAnime
     .horizontal-scroll {
       margin: 0;
       padding: 0 0 1.5rem 0;
-      overflow-x: auto; /* Force horizontal scroll even on desktop */
-      flex-wrap: nowrap;
       gap: 1.75rem;
     }
   }

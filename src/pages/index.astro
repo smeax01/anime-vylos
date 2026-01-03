@@ -11,15 +11,14 @@ let popular: any[] = [];
 let error: string | null = null;
 
 try {
-  trending = await getTrendingAnime(10);
-  popular = await getPopularAnime(10);
+  popular = await getPopularAnime(12);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
   error = "Mode hors ligne ou erreur API.";
 }
 
-// Select Hero Item (First trending item)
-const heroAnime = trending.length > 0 ? trending[0] : null;
+// Select Hero Item (First popular item)
+const heroAnime = popular.length > 0 ? popular[0] : null;
 const heroProps = heroAnime
   ? {
       id: heroAnime.id,
@@ -44,15 +43,15 @@ const heroProps = heroAnime
   }
 
   <div class="content-wrapper">
-    <!-- Trending Section -->
+    <!-- Popular Section -->
     <section class="container section">
       <h2 class="section-title">
-        <Flame class="icon-fire" size={24} />
-        Tendances
+        <Star class="icon-star" size={24} />
+        La Librairie Vylos
       </h2>
       <div class="horizontal-scroll">
         {
-          trending.slice(1).map((anime) => (
+          popular.map((anime) => (
             <a href={`/anime/${anime.id}`} class="card-link">
               <AnimeCard
                 image={anime.coverImage.large}
@@ -68,11 +67,22 @@ const heroProps = heroAnime
       </div>
     </section>
 
+    <!-- History Section -->
+    <section id="history-section" class="container section hidden">
+      <h2 class="section-title">
+        <History class="icon-history" size={24} />
+        Reprendre la lecture
+      </h2>
+      <div id="continue-watching-list" class="horizontal-scroll">
+        <!-- Cards injected by JS -->
+      </div>
+    </section>
+
     <!-- Popular Section -->
     <section class="container section">
       <h2 class="section-title">
         <Star class="icon-star" size={24} />
-        Populaires
+        La Librairie Vylos
       </h2>
       <div class="horizontal-scroll">
         {
@@ -82,21 +92,13 @@ const heroProps = heroAnime
                 image={anime.coverImage.large}
                 title={anime.title.romaji || anime.title.english}
                 type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
+                rating={
+                  anime.averageScore ? anime.averageScore / 10 : undefined
+                }
               />
             </a>
           ))
         }
-      </div>
-    </section>
-
-    <!-- Placeholder for History/Continue Watching (Local State later) -->
-    <section class="container section">
-      <h2 class="section-title">
-        <History class="icon-history" size={24} />
-        Reprendre
-      </h2>
-      <div class="empty-state">
-        <p>Connectez-vous pour synchroniser votre progression.</p>
       </div>
     </section>
   </div>
@@ -104,7 +106,48 @@ const heroProps = heroAnime
   <div class="spacer"></div>
 </Layout>
 
+<script>
+  function renderHistory() {
+    const historySection = document.getElementById("history-section");
+    const historyList = document.getElementById("continue-watching-list");
+    const globalHistory = JSON.parse(
+      localStorage.getItem("vylos_global_history") || "[]"
+    );
+
+    if (globalHistory.length > 0 && historySection && historyList) {
+      historySection.classList.remove("hidden");
+      historyList.innerHTML = globalHistory
+        .map(
+          (anime: any) => `
+        <a href="/anime/${anime.id}" class="card-link">
+          <div class="anime-card">
+            <div class="cover-wrapper">
+              <img src="${anime.image}" alt="${anime.title}" loading="lazy" />
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: 100%"></div>
+              </div>
+              <div class="ep-tag">Ép. ${anime.lastEp}</div>
+            </div>
+            <div class="info">
+              <h3 class="title">${anime.title}</h3>
+              <p class="type">${anime.type}</p>
+            </div>
+          </div>
+        </a>
+      `
+        )
+        .join("");
+    }
+  }
+
+  // Run on load
+  renderHistory();
+</script>
+
 <style>
+  .hidden {
+    display: none !important;
+  }
   .content-wrapper {
     position: relative;
     z-index: 20;

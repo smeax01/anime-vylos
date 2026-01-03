@@ -152,3 +152,28 @@ export const getAnimeById = async (id: number) => {
   const data = await fetchAniList(query, { id });
   return data.Media as Media;
 };
+
+export const getAnimeListByIds = async (ids: number[]) => {
+  if (!ids || ids.length === 0) return [];
+  const query = `
+    query ($ids: [Int]) {
+      Page {
+        media(id_in: $ids, type: ANIME) {
+          id
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          averageScore
+          genres
+          format
+        }
+      }
+    }
+  `;
+  const data = await fetchAniList(query, { ids });
+  return data.Page.media as Media[];
+};

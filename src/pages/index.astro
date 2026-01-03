@@ -27,12 +27,13 @@ try {
   // Filter out any anime missing essential data or images
   const clean = (list: any[]) =>
     list.filter(
-      (a) => a && a.id && (a.coverImage?.large || a.coverImage?.extraLarge)
+      (a) =>
+        a && a.id && a.coverImage?.large && a.description && a.averageScore > 40
     );
 
-  popular = clean(popData);
-  simulcasts = clean(simData);
-  latest = clean(latData);
+  popular = clean(popData).slice(0, 18);
+  simulcasts = clean(simData).slice(0, 18);
+  latest = clean(latData).slice(0, 18);
 } catch (e) {
   console.error("Failed to fetch AniList data:", e);
   error = "Mode hors ligne ou erreur API.";
@@ -296,7 +297,10 @@ const heroProps = heroAnime
         if (!targetId) return;
         const list = document.getElementById(targetId);
         if (list) {
-          const scrollAmount = list.clientWidth * 0.8;
+          const card = list.querySelector(".card-link");
+          const scrollAmount = card
+            ? (card.clientWidth + 20) * 2
+            : list.clientWidth * 0.8;
           if (btn.classList.contains("next")) {
             list.scrollBy({ left: scrollAmount, behavior: "smooth" });
           } else {

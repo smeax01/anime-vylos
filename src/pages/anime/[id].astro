@@ -80,8 +80,8 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
       <div class="player-toolbar">
         <div class="toolbar-left">
           <div class="lang-selector">
-            <button class="lang-btn active" data-lang="vostfr">VOSTFR</button>
-            <button class="lang-btn" data-lang="vf">VF</button>
+            <button class="lang-btn" data-lang="vostfr">VOSTFR</button>
+            <button class="lang-btn active" data-lang="vf">VF</button>
           </div>
           <div class="server-selector">
             <span class="toolbar-label">Miroir :</span>
@@ -186,8 +186,8 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
   let currentSources: any = {};
   let currentEp = 1;
-  let activeServer = "eps3"; // Default to Sibnet
-  let activeLang = "vostfr";
+  let activeServer = "eps3"; // Default: Sibnet
+  let activeLang = "vf"; // Default: VF
 
   // --- LOCAL STORAGE LOGIC ---
   function getProgress() {

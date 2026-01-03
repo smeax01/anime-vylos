@@ -5,10 +5,11 @@ import {
   Clock,
   Heart,
   Play,
-  Settings,
+  Camera,
   LogOut,
   Calendar,
   BarChart3,
+  ChevronRight,
 } from "lucide-astro";
 
 export const prerender = true;
@@ -33,19 +34,20 @@ export const prerender = true;
       <div class="profile-info-main">
         <div class="avatar-container">
           <img id="user-avatar" src="" alt="Avatar" />
-          <button class="edit-avatar" title="Changer d'avatar">
-            <Settings size={16} />
+          <button
+            class="edit-avatar"
+            title="Changer d'avatar"
+            onclick="alert('Bientôt disponible !')"
+          >
+            <Camera size={16} />
           </button>
         </div>
         <div class="user-meta">
-          <h1 id="user-name">Utilisateur</h1>
           <div class="user-badges">
             <span class="badge premium">Membre Vylos</span>
-            <span class="badge date">
-              <Calendar size={14} />
-              Inscrit le <span id="joined-date">--/--/--</span>
-            </span>
           </div>
+          <h1 id="user-name">Utilisateur</h1>
+          <p class="user-status">Prêt pour l'aventure</p>
         </div>
       </div>
       <div class="profile-actions-top">
@@ -61,7 +63,7 @@ export const prerender = true;
       <div class="stat-card">
         <BarChart3 class="stat-icon" size={24} />
         <div class="stat-value" id="stat-time">0h</div>
-        <div class="stat-label">Temps passé</div>
+        <div class="stat-label">Déjà regardé</div>
       </div>
       <div class="stat-card">
         <Play class="stat-icon icon-play" size={24} />
@@ -71,15 +73,14 @@ export const prerender = true;
       <div class="stat-card">
         <Clock class="stat-icon icon-clock" size={24} />
         <div class="stat-value" id="stat-completed">0</div>
-        <div class="stat-label">Terminés</div>
+        <div class="stat-label">Séries finies</div>
       </div>
     </div>
 
-    <!-- Tabs/Content Tabs -->
+    <!-- Tabs -->
     <div class="profile-tabs">
-      <button class="tab-btn active" data-tab="history">Historique</button>
-      <button class="tab-btn" data-tab="favorites">Favoris</button>
-      <button class="tab-btn" data-tab="settings">Réglages</button>
+      <button class="tab-btn active" data-tab="history">Mon Historique</button>
+      <button class="tab-btn" data-tab="favorites">Mes Favoris</button>
     </div>
 
     <div class="tab-content" id="tab-history">
@@ -91,33 +92,6 @@ export const prerender = true;
     <div class="tab-content hidden" id="tab-favorites">
       <div id="favorites-list" class="results-grid">
         <!-- Favorite cards -->
-      </div>
-    </div>
-
-    <div class="tab-content hidden" id="tab-settings">
-      <div class="settings-card">
-        <h3>Paramètres du compte</h3>
-        <form id="settings-form" class="settings-form">
-          <div class="input-group">
-            <label>Nom d'utilisateur</label>
-            <input
-              type="text"
-              id="settings-username"
-              placeholder="Nouveau nom"
-            />
-          </div>
-          <div class="input-group">
-            <label>Changer le mot de passe</label>
-            <input
-              type="password"
-              id="settings-password"
-              placeholder="Nouveau mot de passe"
-            />
-          </div>
-          <button type="submit" class="btn btn-primary"
-            >Enregistrer les modifications</button
-          >
-        </form>
       </div>
     </div>
   </div>
@@ -138,17 +112,15 @@ export const prerender = true;
     (document.getElementById("user-avatar") as HTMLImageElement).src =
       user.avatar;
     document.getElementById("user-name")!.textContent = user.username;
-    document.getElementById("joined-date")!.textContent = new Date(
-      user.joinedAt
-    ).toLocaleDateString("fr-FR");
 
     // Stats
+    const eps = user.stats?.episodesSeen || 0;
     document.getElementById("stat-time")!.textContent =
-      `${Math.floor((user.stats.episodesSeen * 24) / 60)}h`;
-    document.getElementById("stat-episodes")!.textContent =
-      user.stats.episodesSeen.toString();
-    document.getElementById("stat-completed")!.textContent =
-      user.stats.completed.toString();
+      `${Math.floor((eps * 24) / 60)}h`;
+    document.getElementById("stat-episodes")!.textContent = eps.toString();
+    document.getElementById("stat-completed")!.textContent = (
+      user.stats?.completed || 0
+    ).toString();
 
     // History & Favorites
     renderHistory();
@@ -174,33 +146,6 @@ export const prerender = true;
       localStorage.removeItem("vylos_session");
       window.location.href = "/";
     });
-
-    // Settings
-    const settingsForm = document.getElementById(
-      "settings-form"
-    ) as HTMLFormElement;
-    settingsForm?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const newUsername = (
-        document.getElementById("settings-username") as HTMLInputElement
-      ).value;
-      const newPassword = (
-        document.getElementById("settings-password") as HTMLInputElement
-      ).value;
-
-      const users = JSON.parse(localStorage.getItem("vylos_users") || "[]");
-      const userIdx = users.findIndex((u: any) => u.email === user.email);
-
-      if (userIdx !== -1) {
-        if (newUsername) users[userIdx].username = newUsername;
-        if (newPassword) users[userIdx].password = newPassword;
-
-        localStorage.setItem("vylos_users", JSON.stringify(users));
-        localStorage.setItem("vylos_session", JSON.stringify(users[userIdx]));
-        alert("Profil mis à jour !");
-        window.location.reload();
-      }
-    });
   }
 
   function renderHistory() {
@@ -212,7 +157,7 @@ export const prerender = true;
     if (history.length === 0) {
       if (historyList)
         historyList.innerHTML =
-          '<p class="empty-msg">Aucun historique de lecture.</p>';
+          '<div class="empty-tab-msg"><p>Ton historique est vide.</p></div>';
       return;
     }
 
@@ -224,11 +169,14 @@ export const prerender = true;
           <div class="anime-card">
             <div class="cover-wrapper">
               <img src="${anime.image}" alt="${anime.title}" />
+              <div class="progress-bar-container">
+                 <div class="progress-bar-fill" style="width: 100%"></div>
+              </div>
               <div class="ep-tag">Ép. ${anime.lastEp}</div>
             </div>
             <div class="info">
               <h3 class="title">${anime.title}</h3>
-              <p class="type">${anime.type}</p>
+              <p class="type">${anime.type || "Anime"}</p>
             </div>
           </div>
         </a>
@@ -247,12 +195,10 @@ export const prerender = true;
     if (favorites.length === 0) {
       if (favoritesList)
         favoritesList.innerHTML =
-          '<p class="empty-msg">Aucun animé dans vos favoris.</p>';
+          '<div class="empty-tab-msg"><p>Tu n\'as pas encore de favoris.</p></div>';
       return;
     }
 
-    // Since favorites in localStorage are just IDs, we might need to fetch data or store more data.
-    // Assuming for now they store basic data like history.
     if (favoritesList) {
       favoritesList.innerHTML = favorites
         .map(
@@ -260,7 +206,8 @@ export const prerender = true;
         <a href="/anime/${anime.id}" class="card-link">
           <div class="anime-card">
             <div class="cover-wrapper">
-               <img src="${anime.image || "https://via.placeholder.com/300x450"}" alt="${anime.title}" />
+               <img src="${anime.image}" alt="${anime.title}" />
+               <div class="rating">★ Fav</div>
             </div>
             <div class="info">
               <h3 class="title">${anime.title}</h3>
@@ -281,16 +228,12 @@ export const prerender = true;
   .profile-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 2rem;
-    margin-top: 2rem;
+    margin-top: 3rem;
     margin-bottom: 3rem;
     padding: 2.5rem;
-    background: linear-gradient(
-      135deg,
-      rgba(30, 41, 59, 0.4) 0%,
-      rgba(15, 23, 42, 0.6) 100%
-    );
+    background: rgba(15, 23, 42, 0.4);
     border-radius: 32px;
     border: 1px solid rgba(255, 255, 255, 0.05);
   }
@@ -298,9 +241,7 @@ export const prerender = true;
   @media (max-width: 768px) {
     .profile-header {
       flex-direction: column;
-      align-items: center;
       text-align: center;
-      padding: 2rem;
     }
   }
 
@@ -309,7 +250,6 @@ export const prerender = true;
     align-items: center;
     gap: 2rem;
   }
-
   @media (max-width: 640px) {
     .profile-info-main {
       flex-direction: column;
@@ -318,158 +258,102 @@ export const prerender = true;
 
   .avatar-container {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
   }
-
   .avatar-container img {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    border-radius: 40px;
     object-fit: cover;
     border: 4px solid var(--color-primary);
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
   }
 
   .edit-avatar {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    bottom: -10px;
+    right: -10px;
+    background: var(--color-primary);
+    border: 4px solid #020617;
     color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .edit-avatar:hover {
-    background: var(--color-primary);
-    transform: scale(1.1);
   }
 
   .user-meta h1 {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     font-weight: 900;
-    margin-bottom: 0.75rem;
+    margin: 0.5rem 0;
     letter-spacing: -1px;
   }
-
-  .user-badges {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  @media (min-width: 768px) {
-    .user-badges {
-      justify-content: flex-start;
-    }
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
+  .user-status {
+    color: var(--color-text-muted);
+    font-size: 1rem;
   }
 
   .badge.premium {
     background: linear-gradient(90deg, #3b82f6, #8b5cf6);
     color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
   }
 
-  .badge.date {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-muted);
-  }
-
-  /* Stats Grid */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 4rem;
   }
-
   .stat-card {
-    background: rgba(30, 41, 59, 0.4);
-    padding: 2rem;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.3);
+    padding: 2.5rem;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    transition: all 0.3s ease;
   }
-
-  .stat-card:hover {
-    transform: translateY(-5px);
-    background: rgba(30, 41, 59, 0.6);
-    border-color: var(--color-primary);
-  }
-
-  .stat-icon {
-    color: #94a3b8;
-    margin-bottom: 0.5rem;
-  }
-  .icon-play {
-    color: var(--color-primary);
-  }
-  .icon-clock {
-    color: #10b981;
-  }
-
   .stat-value {
-    font-size: 1.75rem;
+    font-size: 2.5rem;
     font-weight: 900;
     color: white;
   }
   .stat-label {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
+    letter-spacing: 1px;
   }
 
-  /* Tabs */
   .profile-tabs {
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 2rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
+    margin-bottom: 3rem;
   }
-
   .tab-btn {
     background: none;
     border: none;
     color: var(--color-text-muted);
-    font-size: 1rem;
-    font-weight: 700;
-    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 1.5rem 0;
     cursor: pointer;
-    white-space: nowrap;
     position: relative;
-    transition: all 0.2s;
   }
-
   .tab-btn.active {
     color: white;
   }
-
   .tab-btn.active::after {
     content: "";
     position: absolute;
@@ -478,86 +362,37 @@ export const prerender = true;
     width: 100%;
     height: 3px;
     background: var(--color-primary);
-    border-radius: 3px;
   }
 
-  .empty-msg {
+  .empty-tab-msg {
+    grid-column: 1/-1;
+    padding: 6rem;
     text-align: center;
-    padding: 4rem;
-    color: var(--color-text-muted);
-    grid-column: 1 / -1;
-  }
-
-  .settings-card {
-    max-width: 600px;
-    background: rgba(30, 41, 59, 0.3);
-    padding: 2.5rem;
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .settings-card h3 {
-    margin-bottom: 1.5rem;
-    font-size: 1.25rem;
-  }
-
-  .settings-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    color: var(--color-text-muted);
   }
 
   .btn-danger {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-  }
-
-  .btn-danger:hover {
-    background: #ef4444;
-    color: white;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 6rem 2rem;
-  }
-
-  .empty-icon {
-    width: 96px;
-    height: 96px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 50%;
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 2rem;
-    color: var(--color-text-muted);
-  }
-
-  .empty-state h2 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  .empty-state p {
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
-  }
-  .empty-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
+    gap: 0.75rem;
   }
 
   .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
-
   @media (min-width: 640px) {
     .results-grid {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
       gap: 2rem;
     }
   }

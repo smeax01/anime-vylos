@@ -5,20 +5,20 @@ import { Search as SearchIcon } from "lucide-astro";
 
 <Layout title="Recherche">
   <div
-    class="max-w-screen-xl mx-auto px-4 py-8 min-h-[80vh] space-y-8 mt-4 md:mt-8"
+    class="max-w-[1600px] mx-auto px-4 md:px-8 py-8 min-h-[80vh] space-y-12 mt-4"
   >
-    <!-- Search Header -->
-    <div class="relative max-w-2xl mx-auto">
+    <!-- Large Search Bar -->
+    <div class="relative max-w-4xl mx-auto">
       <div
-        class="absolute inset-y-0 start-0 flex items-center ps-5 pointer-events-none"
+        class="absolute inset-y-0 start-0 flex items-center ps-6 pointer-events-none"
       >
-        <SearchIcon class="text-blue-500" size={24} />
+        <SearchIcon class="text-gray-500" size={28} />
       </div>
       <input
         type="text"
         id="search-input"
-        class="block w-full p-4 ps-14 text-lg text-gray-900 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-950 dark:border-gray-800 dark:placeholder-gray-400 dark:text-white transition-all"
-        placeholder="Rechercher un anime..."
+        class="block w-full p-6 ps-16 text-xl text-white border-2 border-white/5 rounded-2xl bg-white/5 focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all outline-none"
+        placeholder="Quel anime cherchez-vous ?"
         autofocus
       />
     </div>
@@ -26,17 +26,20 @@ import { Search as SearchIcon } from "lucide-astro";
     <!-- Results Area -->
     <div
       id="results-grid"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8"
     >
-      <div class="col-span-full py-24 text-center space-y-4">
+      <div class="col-span-full py-32 text-center space-y-6">
         <div
-          class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl text-gray-300 dark:text-gray-700"
+          class="inline-flex items-center justify-center w-28 h-28 bg-white/5 rounded-[2.5rem] text-gray-700"
         >
-          <SearchIcon size={40} />
+          <SearchIcon size={56} />
         </div>
-        <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">
-          Tapez le nom d'un anime pour explorer la bibliothèque
-        </p>
+        <div class="space-y-2">
+          <h2 class="text-2xl font-black text-white">Exploration</h2>
+          <p class="text-gray-400 font-medium">
+            Recherchez parmi des milliers d'animés sur Yvlos.
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -55,11 +58,14 @@ import { Search as SearchIcon } from "lucide-astro";
     if (query.trim().length < 2) {
       if (grid)
         grid.innerHTML = `
-        <div class="col-span-full py-24 text-center space-y-4">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl text-gray-300 dark:text-gray-700">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div class="col-span-full py-32 text-center space-y-6">
+            <div class="inline-flex items-center justify-center w-28 h-28 bg-white/5 rounded-[2.5rem] text-gray-700">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Tapez le nom d'un anime pour explorer la bibliothèque</p>
+            <div class="space-y-2">
+                <h2 class="text-2xl font-black text-white">Exploration</h2>
+                <p class="text-gray-400 font-medium">Recherchez parmi des milliers d'animés sur Yvlos.</p>
+            </div>
         </div>
       `;
       return;
@@ -68,9 +74,9 @@ import { Search as SearchIcon } from "lucide-astro";
     debounceTimer = setTimeout(async () => {
       if (grid)
         grid.innerHTML = `
-            <div class="col-span-full py-24 text-center space-y-4">
-                <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mx-auto"></div>
-                <p class="text-gray-500 dark:text-gray-400 font-medium">Recherche en cours...</p>
+            <div class="col-span-full py-32 text-center space-y-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#f47521] border-t-transparent mx-auto"></div>
+                <p class="text-gray-400 font-medium italic">Recherche en cours...</p>
             </div>
       `;
 
@@ -104,11 +110,11 @@ import { Search as SearchIcon } from "lucide-astro";
             .map(
               (anime: any) => `
             <a href="/anime/${anime.id}" class="group block w-full">
-                <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-white/5">
                     <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
                 </div>
                 <div class="mt-2">
-                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-500 transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
+                    <h3 class="text-xs md:text-sm font-bold text-white line-clamp-2 leading-tight min-h-[2.5rem] group-hover:text-[#f47521] transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
                     <p class="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5">${anime.format === "TV" ? "Série" : anime.format || "Anime"}</p>
                 </div>
             </a>
@@ -116,12 +122,11 @@ import { Search as SearchIcon } from "lucide-astro";
             )
             .join("");
         } else if (grid) {
-          grid.innerHTML = `<div class="col-span-full py-24 text-center text-gray-500 font-medium">Aucun résultat trouvé pour "${query}"</div>`;
+          grid.innerHTML = `<div class="col-span-full py-32 text-center text-gray-500 font-medium">Nous n'avons trouvé aucun résultat pour "${query}"...</div>`;
         }
       } catch (err) {
-        console.error(err);
         if (grid)
-          grid.innerHTML = `<div class="col-span-full py-24 text-center text-red-500 font-medium">Une erreur est survenue lors de la recherche.</div>`;
+          grid.innerHTML = `<div class="col-span-full py-32 text-center text-red-500/50 font-medium">Une erreur est survenue lors de la recherche.</div>`;
       }
     }, 400);
   });

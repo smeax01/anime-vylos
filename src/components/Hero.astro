@@ -1,5 +1,5 @@
 ---
-import { Play, Info, Star } from "lucide-astro";
+import { Play, Bookmark, Star, ChevronLeft, ChevronRight } from "lucide-astro";
 
 interface Props {
   id: number;
@@ -14,79 +14,96 @@ const { id, title, description, image, genres, rating } = Astro.props;
 ---
 
 <section
-  class="relative h-[85vh] md:h-[75vh] w-full overflow-hidden flex items-end md:items-center"
+  class="relative h-[85vh] md:h-[90vh] w-full overflow-hidden bg-[#141519]"
 >
-  <!-- Background Image -->
-  <div class="absolute inset-0 z-0">
+  <!-- Background Image with Fade -->
+  <div class="absolute inset-0">
     <img
       src={image}
       alt={title}
-      class="w-full h-full object-cover object-top"
+      class="w-full h-full object-cover object-top filter brightness-75 md:brightness-100"
     />
-    <!-- Overlay -->
+    <!-- Left to Right Gradient (Desktop) -->
     <div
-      class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 md:via-gray-900/20 to-transparent"
+      class="absolute inset-0 bg-gradient-to-r from-[#141519] via-[#141519]/60 md:via-[#141519]/20 to-transparent"
+    >
+    </div>
+    <!-- Bottom Shadow -->
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-[#141519] via-transparent to-transparent"
     >
     </div>
   </div>
 
-  <!-- Content -->
-  <div class="relative z-10 container mx-auto px-4 pb-12 md:pb-0">
-    <div class="max-w-2xl">
-      <div class="flex items-center gap-2 mb-4">
-        <span
-          class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded"
-          >NOUVEAUTÉ</span
+  <!-- Hero Content -->
+  <div
+    class="relative z-10 container mx-auto px-4 md:px-12 h-full flex flex-col justify-center"
+  >
+    <div class="max-w-[700px] space-y-6">
+      <!-- Meta Badges -->
+      <div
+        class="flex items-center gap-3 text-[10px] md:text-sm font-bold text-[#b7b7b7]"
+      >
+        <span class="px-1.5 py-0.5 border border-[#b7b7b7] rounded text-white"
+          >16+</span
         >
-        {
-          rating && (
-            <span class="bg-gray-800/80 backdrop-blur text-yellow-400 text-xs font-bold px-2.5 py-1 rounded flex items-center gap-1">
-              <Star size={12} fill="currentColor" />
-              {rating / 10}
-            </span>
-          )
-        }
+        <span class="after:content-['•'] after:ml-3">Sous-titré</span>
+        <span class="after:content-['•'] after:ml-3 last:after:content-['']">
+          {genres.slice(0, 2).join(", ")}
+        </span>
       </div>
 
+      <!-- Main Title -->
       <h1
-        class="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight"
+        class="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-[0.9]"
       >
         {title}
       </h1>
 
-      <div class="flex flex-wrap gap-2 mb-6 text-sm font-medium text-gray-300">
-        {
-          genres
-            .slice(0, 3)
-            .map((g) => (
-              <span class="after:content-['•'] last:after:content-[''] after:ml-2">
-                {g}
-              </span>
-            ))
-        }
-      </div>
-
+      <!-- Description -->
       <p
-        class="text-gray-300 text-base md:text-lg mb-8 line-clamp-3 max-w-xl"
-        set:html={description}
-      />
+        class="text-white/80 text-sm md:text-lg font-medium line-clamp-3 leading-relaxed max-w-xl"
+      >
+        {description.replace(/<[^>]*>/g, "")}
+      </p>
 
-      <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3 pt-4">
         <a
           href={`/anime/${id}`}
-          class="inline-flex items-center justify-center px-6 py-3 text-base font-bold text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition-colors"
+          class="flex items-center justify-center gap-3 px-8 py-3 bg-[#f47521] hover:bg-[#ff8c3a] text-white font-black rounded transition-all transform active:scale-95 shadow-xl"
         >
-          <Play size={20} fill="currentColor" class="mr-2" />
-          Regarder
+          <Play size={24} fill="currentColor" />
+          LECTURE E1
         </a>
-        <a
-          href={`/anime/${id}`}
-          class="inline-flex items-center justify-center px-6 py-3 text-base font-bold text-center text-white bg-gray-800/60 backdrop-blur rounded-lg border border-gray-100/20 hover:bg-gray-800/80 focus:ring-4 focus:ring-gray-300 focus:outline-none transition-colors"
+        <button
+          class="p-3 border-2 border-white/20 hover:border-white text-white rounded transition-all hover:bg-white/10 active:scale-95"
         >
-          <Info size={20} class="mr-2" />
-          Plus d'infos
-        </a>
+          <Bookmark size={24} />
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- Carousel Indicators (Visual Only) -->
+  <div class="absolute bottom-10 left-4 md:left-12 flex items-center gap-2">
+    <div class="w-8 h-1.5 bg-[#f47521] rounded-full"></div>
+    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
+    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
+    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
+    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
+    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
+  </div>
+
+  <!-- Side Arrows (Visual Only) -->
+  <button
+    class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors hidden md:block"
+  >
+    <ChevronLeft size={48} strokeWidth={3} />
+  </button>
+  <button
+    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors hidden md:block"
+  >
+    <ChevronRight size={48} strokeWidth={3} />
+  </button>
 </section>

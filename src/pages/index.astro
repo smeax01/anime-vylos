@@ -62,175 +62,185 @@ const heroItems = popular.slice(0, 6).map((a) => ({
   {heroItems.length > 0 && <Hero items={heroItems} />}
 
   <div
-    class="max-w-[1600px] mx-auto px-4 md:px-8 mt-8 md:mt-12 relative z-20 space-y-16 pb-24"
+    class="max-w-[1600px] mx-auto px-4 md:px-8 mt-12 md:mt-20 relative z-20 space-y-16 pb-24"
   >
     <!-- Section History -->
-    <section id="history-section" class="hidden space-y-4">
-      <div class="flex items-center justify-between">
+    <section id="history-section" class="hidden space-y-6 group/row relative">
+      <div class="px-2">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
         >
-          Reprendre
+          Reprendre la lecture
         </h2>
-        <div class="flex gap-2">
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="history-list"
-            data-dir="prev"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="history-list"
-            data-dir="next"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
       </div>
-      <div
-        class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-        id="history-list"
-      >
-        <!-- JS Injection -->
+
+      <div class="relative group">
+        <button
+          class="scroll-btn absolute left-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-r from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto"
+          data-target="history-list"
+          data-dir="prev"
+        >
+          <ChevronLeft size={32} strokeWidth={3} />
+        </button>
+
+        <div
+          class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x px-2"
+          id="history-list"
+        >
+          <!-- JS Injection -->
+        </div>
+
+        <button
+          class="scroll-btn absolute right-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-l from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto"
+          data-target="history-list"
+          data-dir="next"
+        >
+          <ChevronRight size={32} strokeWidth={3} />
+        </button>
       </div>
     </section>
 
     <!-- Section Simulcasts -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="space-y-1">
-          <h2
-            class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
-          >
-            Simulcasts de l'hiver 2026
-          </h2>
-          <p class="text-xs md:text-sm text-gray-500 font-medium">
-            Les meilleurs simulcasts et séries en cours sont sur Yvlos !
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="simulcasts-scroll"
-            data-dir="prev"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="simulcasts-scroll"
-            data-dir="next"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
+    <section class="space-y-6 group/row relative">
+      <div class="px-2 space-y-1">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
+        >
+          Simulcasts (Saison Hiver 2026)
+        </h2>
+        <p class="text-xs md:text-sm text-gray-500 font-medium">
+          Les meilleurs animés du catalogue Anime-Sama disponibles sur Yvlos.
+        </p>
       </div>
-      <div
-        class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-        id="simulcasts-scroll"
-      >
-        {
-          simulcasts.map((anime) => (
-            <div class="flex-none w-40 md:w-48 snap-start">
-              <AnimeCard
-                id={anime.id}
-                image={anime.coverImage.large}
-                title={anime.title.romaji || anime.title.english}
-                type={anime.format}
-              />
-            </div>
-          ))
-        }
+
+      <div class="relative group">
+        <button
+          class="scroll-btn absolute left-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-r from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="simulcasts-scroll"
+          data-dir="prev"
+        >
+          <ChevronLeft size={32} strokeWidth={3} />
+        </button>
+
+        <div
+          class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x px-2"
+          id="simulcasts-scroll"
+        >
+          {
+            simulcasts.map((anime) => (
+              <div class="flex-none w-40 md:w-48 snap-start">
+                <AnimeCard
+                  id={anime.id}
+                  image={anime.coverImage.large}
+                  title={anime.title.romaji || anime.title.english}
+                  type={anime.format}
+                />
+              </div>
+            ))
+          }
+        </div>
+
+        <button
+          class="scroll-btn absolute right-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-l from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="simulcasts-scroll"
+          data-dir="next"
+        >
+          <ChevronRight size={32} strokeWidth={3} />
+        </button>
       </div>
     </section>
 
     <!-- Section Sorties -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between">
+    <section class="space-y-6 group/row relative">
+      <div class="px-2">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
         >
-          Tendance en France
+          Tendance & Populaires
         </h2>
-        <div class="flex gap-2">
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="latest-scroll"
-            data-dir="prev"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="latest-scroll"
-            data-dir="next"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
       </div>
-      <div
-        class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-        id="latest-scroll"
-      >
-        {
-          latest.map((anime) => (
-            <div class="flex-none w-40 md:w-48 snap-start">
-              <AnimeCard
-                id={anime.id}
-                image={anime.coverImage.large}
-                title={anime.title.romaji || anime.title.english}
-                type={anime.format}
-              />
-            </div>
-          ))
-        }
+
+      <div class="relative group">
+        <button
+          class="scroll-btn absolute left-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-r from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="latest-scroll"
+          data-dir="prev"
+        >
+          <ChevronLeft size={32} strokeWidth={3} />
+        </button>
+
+        <div
+          class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x px-2"
+          id="latest-scroll"
+        >
+          {
+            latest.map((anime) => (
+              <div class="flex-none w-40 md:w-48 snap-start">
+                <AnimeCard
+                  id={anime.id}
+                  image={anime.coverImage.large}
+                  title={anime.title.romaji || anime.title.english}
+                  type={anime.format}
+                />
+              </div>
+            ))
+          }
+        </div>
+
+        <button
+          class="scroll-btn absolute right-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-l from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="latest-scroll"
+          data-dir="next"
+        >
+          <ChevronRight size={32} strokeWidth={3} />
+        </button>
       </div>
     </section>
 
     <!-- Section Librairie -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between">
+    <section class="space-y-6 group/row relative">
+      <div class="px-2">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
         >
-          Le Choix de la Librairie
+          Les Incontournables
         </h2>
-        <div class="flex gap-2">
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="popular-scroll"
-            data-dir="prev"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
-            data-target="popular-scroll"
-            data-dir="next"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
       </div>
-      <div
-        class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-        id="popular-scroll"
-      >
-        {
-          popular.map((anime) => (
-            <div class="flex-none w-40 md:w-48 snap-start">
-              <AnimeCard
-                id={anime.id}
-                image={anime.coverImage.large}
-                title={anime.title.romaji || anime.title.english}
-                type={anime.format}
-              />
-            </div>
-          ))
-        }
+
+      <div class="relative group">
+        <button
+          class="scroll-btn absolute left-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-r from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="popular-scroll"
+          data-dir="prev"
+        >
+          <ChevronLeft size={32} strokeWidth={3} />
+        </button>
+
+        <div
+          class="flex gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x px-2"
+          id="popular-scroll"
+        >
+          {
+            popular.map((anime) => (
+              <div class="flex-none w-40 md:w-48 snap-start">
+                <AnimeCard
+                  id={anime.id}
+                  image={anime.coverImage.large}
+                  title={anime.title.romaji || anime.title.english}
+                  type={anime.format}
+                />
+              </div>
+            ))
+          }
+        </div>
+
+        <button
+          class="scroll-btn absolute right-0 top-0 bottom-0 z-30 w-12 bg-gradient-to-l from-black/80 to-transparent text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          data-target="popular-scroll"
+          data-dir="next"
+        >
+          <ChevronRight size={32} strokeWidth={3} />
+        </button>
       </div>
     </section>
   </div>
@@ -259,7 +269,7 @@ const heroItems = popular.slice(0, 6).map((a) => ({
                     </div>
                 </div>
                 <div class="mt-2">
-                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-500 transition-colors">${a.title}</h3>
+                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-500 transition-colors">${a.title}</h3>
                     <p class="text-[10px] md:text-xs text-gray-500 font-medium">${a.type === "TV" ? "Série" : a.type || "Anime"}</p>
                 </div>
             </a>

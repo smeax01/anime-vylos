@@ -4,106 +4,58 @@ import { Github, Twitter, Disc as Discord, Youtube } from "lucide-astro";
 ---
 
 <footer
-  class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pb-20 md:pb-8"
+  class="bg-[#141d2b] text-white/50 border-t border-white/5 py-12 pb-24 md:pb-12"
 >
-  <div class="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
-    <div class="md:flex md:justify-between">
-      <div class="mb-6 md:mb-0">
-        <a href="/" class="flex items-center">
-          <Logo scale={0.8} />
+  <div class="mx-auto w-full max-w-[1600px] px-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+      <!-- Left side: logo & short desc -->
+      <div class="flex flex-col items-center md:items-start gap-4">
+        <a href="/" class="opacity-80 hover:opacity-100 transition-opacity">
+          <Logo scale={0.7} />
         </a>
-        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-sm">
-          L'expérience anime ultime. Stream gratuit sans publicité, propulsé par
-          la communauté.
+        <p
+          class="text-xs font-medium max-w-xs text-center md:text-left text-gray-400"
+        >
+          Stream gratuit d'animés en HD. Propulsé par la passion.
         </p>
       </div>
-      <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
-        <div>
-          <h2
-            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
-          >
-            Navigation
-          </h2>
-          <ul class="text-gray-500 dark:text-gray-400 font-medium">
-            <li class="mb-4">
-              <a href="/" class="hover:underline">Accueil</a>
-            </li>
-            <li class="mb-4">
-              <a href="/search" class="hover:underline">Parcourir</a>
-            </li>
-            <li>
-              <a href="/favorites" class="hover:underline">Favoris</a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h2
-            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
-          >
-            Communauté
-          </h2>
-          <ul class="text-gray-500 dark:text-gray-400 font-medium">
-            <li class="mb-4">
-              <a href="#" class="hover:underline">Discord</a>
-            </li>
-            <li>
-              <a href="#" class="hover:underline">Github</a>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h2
-            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
-          >
-            Légal
-          </h2>
-          <ul class="text-gray-500 dark:text-gray-400 font-medium">
-            <li class="mb-4">
-              <a href="/support" class="hover:underline">Support</a>
-            </li>
-            <li>
-              <a href="#" class="hover:underline">Conditions d'utilisation</a>
-            </li>
-          </ul>
-        </div>
+
+      <!-- Center side: simple links -->
+      <div
+        class="flex flex-wrap justify-center gap-6 md:gap-10 text-[11px] font-black uppercase tracking-widest text-white/70"
+      >
+        <a href="/" class="hover:text-blue-400 transition-colors">Accueil</a>
+        <a href="/search" class="hover:text-blue-400 transition-colors"
+          >Nouveautés</a
+        >
+        <a href="/favorites" class="hover:text-blue-400 transition-colors"
+          >Ma Liste</a
+        >
+        <a href="/support" class="hover:text-blue-400 transition-colors"
+          >Support</a
+        >
+        <a href="#" class="hover:text-blue-400 transition-colors">Légal</a>
+      </div>
+
+      <!-- Right side: social minimal -->
+      <div class="flex gap-6">
+        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+          ><Discord size={20} /></a
+        >
+        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+          ><Twitter size={20} /></a
+        >
+        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+          ><Youtube size={20} /></a
+        >
       </div>
     </div>
-    <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-    <div class="sm:flex sm:items-center sm:justify-between">
-      <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400"
-        >© {new Date().getFullYear()}
-        <a href="/" class="hover:underline">Yvlos™</a>. Tous droits réservés.
-      </span>
-      <div class="flex mt-4 space-x-5 sm:justify-center sm:mt-0">
-        <a
-          href="#"
-          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-        >
-          <Discord size={18} />
-          <span class="sr-only">Discord page</span>
-        </a>
-        <a
-          href="#"
-          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-        >
-          <Twitter size={18} />
-          <span class="sr-only">Twitter page</span>
-        </a>
-        <a
-          href="#"
-          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-        >
-          <Github size={18} />
-          <span class="sr-only">GitHub account</span>
-        </a>
-        <a
-          href="#"
-          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-        >
-          <Youtube size={18} />
-          <span class="sr-only">Youtube channel</span>
-        </a>
-      </div>
+
+    <div class="mt-12 pt-8 border-t border-white/5 text-center">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-white/30">
+        © {new Date().getFullYear()} Yvlos. Toutes les vidéos sont hébergées par des
+        tiers.
+      </p>
     </div>
   </div>
 </footer>

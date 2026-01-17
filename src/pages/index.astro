@@ -10,13 +10,13 @@ import {
 } from "../lib/anilist";
 import libraryData from "../data/library.json";
 import {
+  Star,
   History,
   Zap,
   Clock,
   ChevronLeft,
   ChevronRight,
   Library,
-  Star,
 } from "lucide-astro";
 
 export const prerender = false;
@@ -85,210 +85,211 @@ const heroProps = heroAnime
   }
 
   <div
-    class="max-w-screen-xl mx-auto px-4 -mt-10 md:-mt-24 relative z-20 space-y-20 pb-20"
+    class="max-w-screen-xl mx-auto px-4 -mt-10 md:-mt-24 relative z-20 space-y-16 pb-20"
   >
     <!-- Section History -->
-    <section id="history-section" class="hidden space-y-6 group/section">
-      <div class="flex items-center justify-between px-2">
+    <section id="history-section" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
         >
           <History class="text-blue-500" size={28} />
           Reprendre
         </h2>
-      </div>
-      <div class="relative px-2">
-        <button
-          class="scroll-btn absolute -left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="history-list"
-          data-dir="prev"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          class="scroll-btn absolute -right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="history-list"
-          data-dir="next"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        <div
-          class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-          id="history-list"
-        >
-          <!-- JS Injection -->
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="history-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="history-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+      </div>
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
+        id="history-list"
+      >
+        <!-- JS Injection -->
       </div>
     </section>
 
     <!-- Section Simulcasts -->
-    <section class="space-y-6 group/section">
-      <div class="flex items-center justify-between px-2">
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
         >
           <Zap class="text-yellow-400" size={28} />
           Simulcasts
         </h2>
-      </div>
-      <div class="relative px-2">
-        <button
-          class="scroll-btn absolute -left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="simulcasts-scroll"
-          data-dir="prev"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          class="scroll-btn absolute -right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="simulcasts-scroll"
-          data-dir="next"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        <div
-          class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-          id="simulcasts-scroll"
-        >
-          {
-            simulcasts.map((anime) => (
-              <div class="flex-none w-40 md:w-56 snap-start">
-                <AnimeCard
-                  id={anime.id}
-                  image={anime.coverImage.large}
-                  title={anime.title.romaji || anime.title.english}
-                />
-              </div>
-            ))
-          }
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="simulcasts-scroll"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="simulcasts-scroll"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+      </div>
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
+        id="simulcasts-scroll"
+      >
+        {
+          simulcasts.map((anime) => (
+            <div class="flex-none w-40 md:w-52 snap-start">
+              <AnimeCard
+                id={anime.id}
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={anime.format}
+                rating={anime.averageScore}
+              />
+            </div>
+          ))
+        }
       </div>
     </section>
 
     <!-- Section Favorites -->
-    <div id="favorites-section" class="hidden space-y-6 group/section">
-      <div class="flex items-center justify-between px-2">
+    <div id="favorites-section" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
         >
           <Star class="text-pink-500" size={28} />
           Coups de cœur
         </h2>
-      </div>
-      <div class="relative px-2">
-        <button
-          class="scroll-btn absolute -left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="favorites-list"
-          data-dir="prev"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          class="scroll-btn absolute -right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="favorites-list"
-          data-dir="next"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        <div
-          class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-          id="favorites-list"
-        >
-          <!-- JS Injection -->
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="favorites-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="favorites-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+      </div>
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
+        id="favorites-list"
+      >
+        <!-- JS Injection -->
       </div>
     </div>
 
     <!-- Section Dernières Sorties -->
-    <section class="space-y-6 group/section">
-      <div class="flex items-center justify-between px-2">
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
         >
           <Clock class="text-green-500" size={28} />
           Dernières Sorties
         </h2>
-      </div>
-      <div class="relative px-2">
-        <button
-          class="scroll-btn absolute -left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="latest-scroll"
-          data-dir="prev"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          class="scroll-btn absolute -right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="latest-scroll"
-          data-dir="next"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        <div
-          class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-          id="latest-scroll"
-        >
-          {
-            latest.map((anime) => (
-              <div class="flex-none w-40 md:w-56 snap-start">
-                <AnimeCard
-                  id={anime.id}
-                  image={anime.coverImage.large}
-                  title={anime.title.romaji || anime.title.english}
-                />
-              </div>
-            ))
-          }
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="latest-scroll"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="latest-scroll"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+      </div>
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
+        id="latest-scroll"
+      >
+        {
+          latest.map((anime) => (
+            <div class="flex-none w-40 md:w-52 snap-start">
+              <AnimeCard
+                id={anime.id}
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={anime.format}
+                rating={anime.averageScore}
+              />
+            </div>
+          ))
+        }
       </div>
     </section>
 
     <!-- La Librairie -->
-    <section class="space-y-6 group/section">
-      <div class="flex items-center justify-between px-2">
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
         <h2
           class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
         >
           <Library class="text-blue-600" size={28} />
           La Librairie
         </h2>
-      </div>
-      <div class="relative px-2">
-        <button
-          class="scroll-btn absolute -left-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="popular-scroll"
-          data-dir="prev"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          class="scroll-btn absolute -right-2 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl opacity-0 group-hover/section:opacity-100 transition-opacity hidden md:flex hover:bg-blue-600 hover:text-white hover:border-blue-600"
-          data-target="popular-scroll"
-          data-dir="next"
-        >
-          <ChevronRight size={24} />
-        </button>
-
-        <div
-          class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
-          id="popular-scroll"
-        >
-          {
-            popular.map((anime) => (
-              <div class="flex-none w-40 md:w-56 snap-start">
-                <AnimeCard
-                  id={anime.id}
-                  image={anime.coverImage.large}
-                  title={anime.title.romaji || anime.title.english}
-                />
-              </div>
-            ))
-          }
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="popular-scroll"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+            data-target="popular-scroll"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+      </div>
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x"
+        id="popular-scroll"
+      >
+        {
+          popular.map((anime) => (
+            <div class="flex-none w-40 md:w-52 snap-start">
+              <AnimeCard
+                id={anime.id}
+                image={anime.coverImage.large}
+                title={anime.title.romaji || anime.title.english}
+                type={anime.format}
+                rating={anime.averageScore}
+              />
+            </div>
+          ))
+        }
       </div>
     </section>
   </div>
@@ -307,19 +308,18 @@ const heroProps = heroAnime
       historyList.innerHTML = history
         .map(
           (a: any) => `
-        <div class="flex-none w-40 md:w-56 snap-start h-full">
+        <div class="flex-none w-40 md:w-52 snap-start">
             <a href="/anime/${a.id}?ep=${a.lastEp || 1}" class="group block w-full">
-                <div class="h-full bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl">
-                    <div class="relative aspect-[2/3] w-full overflow-hidden">
-                        <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div class="absolute top-0 left-0 w-full h-1 bg-white/20"><div class="h-full bg-blue-600" style="width: 100%"></div></div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div class="bg-blue-600 p-3 rounded-full text-white shadow-2xl"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></div>
-                        </div>
+                <div class="relative aspect-[2/3] w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 group-hover:border-blue-500/50 transition-colors bg-white dark:bg-gray-950">
+                    <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div class="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-lg uppercase tracking-widest">ÉP. ${a.lastEp}</div>
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-900/40">
+                        <div class="h-full bg-blue-600" style="width: 100%"></div>
                     </div>
-                    <div class="p-3 bg-gray-50/50 dark:bg-gray-900/40 border-t border-gray-100 dark:border-gray-800">
-                        <h3 class="text-xs md:text-sm font-black text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2.5rem] uppercase tracking-tight group-hover:text-blue-500">${a.title}</h3>
-                    </div>
+                </div>
+                <div class="mt-3 space-y-1">
+                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2.5rem] group-hover:text-blue-500">${a.title}</h3>
+                    <span class="text-[10px] font-medium text-gray-500 uppercase tracking-widest">${a.type || "Anime"}</span>
                 </div>
             </a>
         </div>
@@ -339,18 +339,15 @@ const heroProps = heroAnime
       favList.innerHTML = favorites
         .map(
           (a: any) => `
-        <div class="flex-none w-40 md:w-56 snap-start h-full">
+        <div class="flex-none w-40 md:w-52 snap-start">
             <a href="/anime/${a.id}" class="group block w-full">
-                <div class="h-full bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl">
-                    <div class="relative aspect-[2/3] w-full overflow-hidden">
-                        <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div class="bg-blue-600 p-3 rounded-full text-white shadow-2xl"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></div>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-gray-50/50 dark:bg-gray-900/40 border-t border-gray-100 dark:border-gray-800">
-                        <h3 class="text-xs md:text-sm font-black text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2.5rem] uppercase tracking-tight group-hover:text-blue-500">${a.title}</h3>
-                    </div>
+                <div class="relative aspect-[2/3] w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 group-hover:border-blue-500/50 transition-colors bg-white dark:bg-gray-950">
+                    <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div class="absolute top-2 right-2 bg-pink-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-lg">FAV</div>
+                </div>
+                <div class="mt-3 space-y-1">
+                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2.5rem] group-hover:text-blue-500">${a.title}</h3>
+                    <span class="text-[10px] font-medium text-gray-500 uppercase tracking-widest">${a.type || "Anime"}</span>
                 </div>
             </a>
         </div>

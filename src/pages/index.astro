@@ -47,48 +47,41 @@ try {
   error = "Une erreur est survenue...";
 }
 
-const heroAnime =
-  popular.find((a) => a.bannerImage && a.description) || popular[0];
-const heroProps = heroAnime
-  ? {
-      id: heroAnime.id,
-      title: heroAnime.title.romaji || heroAnime.title.english,
-      description: heroAnime.description || "Découvrez cet anime sur Yvlos.",
-      image:
-        heroAnime.bannerImage ||
-        heroAnime.coverImage.extraLarge ||
-        heroAnime.coverImage.large ||
-        "",
-      genres: heroAnime.genres || [],
-      rating: heroAnime.averageScore || 0,
-    }
-  : null;
+// Prepare Hero items
+const heroItems = popular.slice(0, 6).map((a) => ({
+  id: a.id,
+  title: a.title.romaji || a.title.english,
+  description: a.description || "Découvrez cet anime sur Yvlos.",
+  image: a.bannerImage || a.coverImage.extraLarge || a.coverImage.large || "",
+  genres: a.genres || [],
+  rating: a.averageScore || 0,
+}));
 ---
 
 <Layout title="Accueil">
-  {heroProps && <Hero {...heroProps} />}
+  {heroItems.length > 0 && <Hero items={heroItems} />}
 
   <div
-    class="max-w-[1600px] mx-auto px-4 md:px-8 -mt-12 md:-mt-20 relative z-20 space-y-12 pb-24"
+    class="max-w-[1600px] mx-auto px-4 md:px-8 mt-8 md:mt-12 relative z-20 space-y-16 pb-24"
   >
     <!-- Section History -->
     <section id="history-section" class="hidden space-y-4">
       <div class="flex items-center justify-between">
         <h2
-          class="text-xl md:text-2xl font-black text-white tracking-tight uppercase"
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
         >
           Reprendre
         </h2>
         <div class="flex gap-2">
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="history-list"
             data-dir="prev"
           >
             <ChevronLeft size={24} />
           </button>
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="history-list"
             data-dir="next"
           >
@@ -105,26 +98,28 @@ const heroProps = heroAnime
     </section>
 
     <!-- Section Simulcasts -->
-    <section class="space-y-4 text-white">
+    <section class="space-y-4">
       <div class="flex items-center justify-between">
         <div class="space-y-1">
-          <h2 class="text-xl md:text-2xl font-black tracking-tight uppercase">
+          <h2
+            class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
+          >
             Simulcasts de l'hiver 2026
           </h2>
-          <p class="text-xs md:text-sm text-gray-400 font-medium">
+          <p class="text-xs md:text-sm text-gray-500 font-medium">
             Les meilleurs simulcasts et séries en cours sont sur Yvlos !
           </p>
         </div>
         <div class="flex gap-2">
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="simulcasts-scroll"
             data-dir="prev"
           >
             <ChevronLeft size={24} />
           </button>
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="simulcasts-scroll"
             data-dir="next"
           >
@@ -152,21 +147,23 @@ const heroProps = heroAnime
     </section>
 
     <!-- Section Sorties -->
-    <section class="space-y-4 text-white">
+    <section class="space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl md:text-2xl font-black tracking-tight uppercase">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
+        >
           Tendance en France
         </h2>
         <div class="flex gap-2">
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="latest-scroll"
             data-dir="prev"
           >
             <ChevronLeft size={24} />
           </button>
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="latest-scroll"
             data-dir="next"
           >
@@ -194,21 +191,23 @@ const heroProps = heroAnime
     </section>
 
     <!-- Section Librairie -->
-    <section class="space-y-4 text-white">
+    <section class="space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl md:text-2xl font-black tracking-tight uppercase">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase"
+        >
           Le Choix de la Librairie
         </h2>
         <div class="flex gap-2">
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="popular-scroll"
             data-dir="prev"
           >
             <ChevronLeft size={24} />
           </button>
           <button
-            class="scroll-btn p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5"
+            class="scroll-btn p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/5 dark:border-white/5"
             data-target="popular-scroll"
             data-dir="next"
           >
@@ -255,13 +254,13 @@ const heroProps = heroAnime
                 <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all">
                     <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div class="absolute bottom-2 left-2 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-lg">EP ${a.lastEp}</div>
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-black/20">
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-black/20 dark:bg-white/20">
                         <div class="h-full bg-blue-600 w-full"></div>
                     </div>
                 </div>
                 <div class="mt-2">
                     <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-500 transition-colors">${a.title}</h3>
-                    <p class="text-[10px] md:text-xs text-gray-400 font-medium">${a.type === "TV" ? "Série" : a.type || "Anime"}</p>
+                    <p class="text-[10px] md:text-xs text-gray-500 font-medium">${a.type === "TV" ? "Série" : a.type || "Anime"}</p>
                 </div>
             </a>
         </div>

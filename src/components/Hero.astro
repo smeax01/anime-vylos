@@ -1,7 +1,7 @@
 ---
-import { Play, Bookmark, Star, ChevronLeft, ChevronRight } from "lucide-astro";
+import { Play, Bookmark, ChevronLeft, ChevronRight } from "lucide-astro";
 
-interface Props {
+interface HeroItem {
   id: number;
   title: string;
   description: string;
@@ -10,100 +10,122 @@ interface Props {
   rating: number;
 }
 
-const { id, title, description, image, genres, rating } = Astro.props;
+interface Props {
+  items: HeroItem[];
+}
+
+const { items } = Astro.props;
 ---
 
-<section
-  class="relative h-[85vh] md:h-[90vh] w-full overflow-hidden bg-[#141519]"
->
-  <!-- Background Image with Fade -->
-  <div class="absolute inset-0">
-    <img
-      src={image}
-      alt={title}
-      class="w-full h-full object-cover object-top filter brightness-75 md:brightness-100"
-    />
-    <!-- Left to Right Gradient (Desktop) -->
-    <div
-      class="absolute inset-0 bg-gradient-to-r from-[#141519] via-[#141519]/60 md:via-[#141519]/20 to-transparent"
-    >
-    </div>
-    <!-- Bottom Shadow -->
-    <div
-      class="absolute inset-0 bg-gradient-to-t from-[#141519] via-transparent to-transparent"
-    >
-    </div>
-  </div>
+<section class="relative h-[70vh] md:h-[85vh] w-full overflow-hidden bg-gray-900 group">
+  <!-- Carousel Container -->
+  <div id="hero-carousel" class="flex h-full w-full transition-transform duration-700 ease-in-out">
+    {items.map((item, index) => (
+      <div class="relative flex-none w-full h-full overflow-hidden">
+        <!-- Background Image -->
+        <div class="absolute inset-0">
+          <img
+            src={item.image}
+            alt={item.title}
+            class="w-full h-full object-cover object-top filter brightness-50 md:brightness-100"
+          />
+          <!-- Gradients -->
+          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 md:via-transparent to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent md:from-gray-900 md:via-transparent"></div>
+        </div>
 
-  <!-- Hero Content -->
-  <div
-    class="relative z-10 container mx-auto px-4 md:px-12 h-full flex flex-col justify-center"
-  >
-    <div class="max-w-[700px] space-y-6">
-      <!-- Meta Badges -->
-      <div
-        class="flex items-center gap-3 text-[10px] md:text-sm font-bold text-[#b7b7b7]"
-      >
-        <span class="px-1.5 py-0.5 border border-[#b7b7b7] rounded text-white"
-          >16+</span
-        >
-        <span class="after:content-['•'] after:ml-3">Sous-titré</span>
-        <span class="after:content-['•'] after:ml-3 last:after:content-['']">
-          {genres.slice(0, 2).join(", ")}
-        </span>
+        <!-- Content -->
+        <div class="relative z-10 container mx-auto px-4 md:px-12 h-full flex flex-col justify-center">
+          <div class="max-w-[700px] space-y-4 md:space-y-6">
+            <div class="flex items-center gap-3 text-[10px] md:text-sm font-bold text-gray-400">
+              <span class="px-1.5 py-0.5 border border-gray-400 rounded text-white">16+</span>
+              <span class="after:content-['•'] after:ml-3">Sous-titré</span>
+              <span class="last:after:content-['']">
+                {item.genres.slice(0, 2).join(", ")}
+              </span>
+            </div>
+
+            <h1 class="text-3xl md:text-6xl font-black text-white uppercase tracking-tighter leading-tight md:leading-[0.9]">
+              {item.title}
+            </h1>
+
+            <p class="text-white/80 text-xs md:text-base font-medium line-clamp-3 leading-relaxed max-w-lg">
+              {item.description.replace(/<[^>]*>/g, '')}
+            </p>
+
+            <div class="flex items-center gap-3 pt-2 md:pt-4">
+              <a
+                href={`/anime/${item.id}`}
+                class="flex items-center justify-center gap-3 px-6 md:px-8 py-2 md:py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded transition-all transform active:scale-95 shadow-xl"
+              >
+                <Play size={20} fill="currentColor" />
+                LECTURE
+              </a>
+              <button class="p-2 md:p-3 border-2 border-white/20 hover:border-white text-white rounded transition-all hover:bg-white/10 active:scale-95">
+                <Bookmark size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <!-- Main Title -->
-      <h1
-        class="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-[0.9]"
-      >
-        {title}
-      </h1>
-
-      <!-- Description -->
-      <p
-        class="text-white/80 text-sm md:text-lg font-medium line-clamp-3 leading-relaxed max-w-xl"
-      >
-        {description.replace(/<[^>]*>/g, "")}
-      </p>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-3 pt-4">
-        <a
-          href={`/anime/${id}`}
-          class="flex items-center justify-center gap-3 px-8 py-3 bg-[#f47521] hover:bg-[#ff8c3a] text-white font-black rounded transition-all transform active:scale-95 shadow-xl"
-        >
-          <Play size={24} fill="currentColor" />
-          LECTURE E1
-        </a>
-        <button
-          class="p-3 border-2 border-white/20 hover:border-white text-white rounded transition-all hover:bg-white/10 active:scale-95"
-        >
-          <Bookmark size={24} />
-        </button>
-      </div>
-    </div>
+    ))}
   </div>
 
-  <!-- Carousel Indicators (Visual Only) -->
-  <div class="absolute bottom-10 left-4 md:left-12 flex items-center gap-2">
-    <div class="w-8 h-1.5 bg-[#f47521] rounded-full"></div>
-    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
-    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
-    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
-    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
-    <div class="w-2 h-1.5 bg-white/20 rounded-full"></div>
-  </div>
+  <!-- Controls -->
+  <button id="hero-prev" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 p-2 text-white/50 hover:text-white transition-opacity opacity-0 group-hover:opacity-100">
+      <ChevronLeft size={48} strokeWidth={3} />
+  </button>
+  <button id="hero-next" class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 p-2 text-white/50 hover:text-white transition-opacity opacity-0 group-hover:opacity-100">
+      <ChevronRight size={48} strokeWidth={3} />
+  </button>
 
-  <!-- Side Arrows (Visual Only) -->
-  <button
-    class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors hidden md:block"
-  >
-    <ChevronLeft size={48} strokeWidth={3} />
-  </button>
-  <button
-    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors hidden md:block"
-  >
-    <ChevronRight size={48} strokeWidth={3} />
-  </button>
+  <!-- Indicators -->
+  <div class="absolute bottom-6 md:bottom-10 left-4 md:left-12 z-30 flex items-center gap-2">
+      {items.map((_, i) => (
+          <div class={`hero-indicator w-2 h-1.5 md:w-3 md:h-2 rounded-full transition-all duration-300 ${i === 0 ? 'bg-blue-600 w-6 md:w-8' : 'bg-white/20'}`} data-index={i}></div>
+      ))}
+  </div>
 </section>
+
+<script>
+  let currentIndex = 0;
+  const carousel = document.getElementById('hero-carousel');
+  const indicators = document.querySelectorAll('.hero-indicator');
+  const totalItems = document.querySelectorAll('#hero-carousel > div').length;
+
+  function updateCarousel() {
+    if (!carousel) return;
+    carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+    
+    indicators.forEach((ind, i) => {
+      if (i === currentIndex) {
+        ind.classList.add('bg-blue-600', 'w-6', 'md:w-8');
+        ind.classList.remove('bg-white/20', 'w-2', 'md:w-3');
+      } else {
+        ind.classList.remove('bg-blue-600', 'w-6', 'md:w-8');
+        ind.classList.add('bg-white/20', 'w-2', 'md:w-3');
+      }
+    });
+  }
+
+  document.getElementById('hero-prev')?.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+    updateCarousel();
+  });
+
+  document.getElementById('hero-next')?.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % totalItems;
+    updateCarousel();
+  });
+
+  // Auto-play
+  let interval = setInterval(() => {
+    currentIndex = (currentIndex + 1) % totalItems;
+    updateCarousel();
+  }, 10000);
+
+  // Stop auto-play on interaction
+  document.querySelectorAll('.scroll-btn, .hero-indicator, #hero-prev, #hero-next').forEach(el => {
+    el.addEventListener('click', () => clearInterval(interval));
+  });
+</script>

@@ -4,55 +4,63 @@ import { Github, Twitter, Disc as Discord, Youtube } from "lucide-astro";
 ---
 
 <footer
-  class="bg-[#141d2b] text-white/50 border-t border-white/5 py-12 pb-24 md:pb-12"
+  class="bg-[#0F172A] text-[#9CA3AF] border-t border-[#1E293B] py-12 pb-24 md:pb-12"
 >
   <div class="mx-auto w-full max-w-[1600px] px-6">
     <div class="flex flex-col md:flex-row justify-between items-center gap-8">
-      <!-- Left side: logo & short desc -->
+      <!-- Left side -->
       <div class="flex flex-col items-center md:items-start gap-4">
-        <a href="/" class="opacity-80 hover:opacity-100 transition-opacity">
+        <a href="/" class="opacity-90 hover:opacity-100 transition-opacity">
           <Logo scale={0.7} />
         </a>
         <p
-          class="text-xs font-medium max-w-xs text-center md:text-left text-gray-400"
+          class="text-xs font-medium max-w-xs text-center md:text-left text-[#9CA3AF]"
         >
           Stream gratuit d'animés en HD. Propulsé par la passion.
         </p>
       </div>
 
-      <!-- Center side: simple links -->
+      <!-- Center links -->
       <div
-        class="flex flex-wrap justify-center gap-6 md:gap-10 text-[11px] font-black uppercase tracking-widest text-white/70"
+        class="flex flex-wrap justify-center gap-6 md:gap-10 text-[11px] font-black uppercase tracking-widest text-[#E5E7EB]"
       >
-        <a href="/" class="hover:text-blue-400 transition-colors">Accueil</a>
-        <a href="/search" class="hover:text-blue-400 transition-colors"
+        <a href="/" class="hover:text-[#3B82F6] transition-colors">Accueil</a>
+        <a href="/search" class="hover:text-[#3B82F6] transition-colors"
           >Nouveautés</a
         >
-        <a href="/favorites" class="hover:text-blue-400 transition-colors"
+        <a href="/favorites" class="hover:text-[#3B82F6] transition-colors"
           >Ma Liste</a
         >
-        <a href="/support" class="hover:text-blue-400 transition-colors"
+        <a href="/support" class="hover:text-[#3B82F6] transition-colors"
           >Support</a
         >
-        <a href="#" class="hover:text-blue-400 transition-colors">Légal</a>
+        <a href="#" class="hover:text-[#3B82F6] transition-colors">Légal</a>
       </div>
 
-      <!-- Right side: social minimal -->
+      <!-- Right socials -->
       <div class="flex gap-6">
-        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+        <a
+          href="#"
+          class="text-[#9CA3AF] hover:text-[#3B82F6] transition-colors"
           ><Discord size={20} /></a
         >
-        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+        <a
+          href="#"
+          class="text-[#9CA3AF] hover:text-[#3B82F6] transition-colors"
           ><Twitter size={20} /></a
         >
-        <a href="#" class="text-gray-400 hover:text-white transition-colors"
+        <a
+          href="#"
+          class="text-[#9CA3AF] hover:text-[#3B82F6] transition-colors"
           ><Youtube size={20} /></a
         >
       </div>
     </div>
 
-    <div class="mt-12 pt-8 border-t border-white/5 text-center">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-white/30">
+    <div class="mt-12 pt-8 border-t border-[#1E293B] text-center">
+      <p
+        class="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF]/40"
+      >
         © {new Date().getFullYear()} Yvlos. Toutes les vidéos sont hébergées par des
         tiers.
       </p>

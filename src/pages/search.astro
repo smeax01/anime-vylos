@@ -12,12 +12,12 @@ import { Search as SearchIcon } from "lucide-astro";
       <div
         class="absolute inset-y-0 start-0 flex items-center ps-6 pointer-events-none"
       >
-        <SearchIcon class="text-gray-400" size={28} />
+        <SearchIcon class="text-[#9CA3AF]" size={28} />
       </div>
       <input
         type="text"
         id="search-input"
-        class="block w-full p-6 ps-16 text-xl text-gray-900 dark:text-white border-2 border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-800/50 focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all outline-none"
+        class="block w-full p-6 ps-16 text-xl text-[#E5E7EB] border-2 border-[#1E293B] rounded-2xl bg-[#0F172A] focus:ring-4 focus:ring-[#3B82F6]/10 focus:border-[#3B82F6] transition-all outline-none placeholder-[#9CA3AF]/50"
         placeholder="Quel anime cherchez-vous ?"
         autofocus
       />
@@ -30,15 +30,13 @@ import { Search as SearchIcon } from "lucide-astro";
     >
       <div class="col-span-full py-32 text-center space-y-6">
         <div
-          class="inline-flex items-center justify-center w-28 h-28 bg-gray-50 dark:bg-gray-800 rounded-[2.5rem] text-gray-300 dark:text-gray-700"
+          class="inline-flex items-center justify-center w-28 h-28 bg-[#1E293B] rounded-[2.5rem] text-[#9CA3AF]"
         >
           <SearchIcon size={56} />
         </div>
         <div class="space-y-2">
-          <h2 class="text-2xl font-black text-gray-900 dark:text-white">
-            Exploration
-          </h2>
-          <p class="text-gray-500 dark:text-gray-400 font-medium">
+          <h2 class="text-2xl font-black text-[#E5E7EB]">Exploration</h2>
+          <p class="text-[#9CA3AF] font-medium">
             Recherchez parmi des milliers d'animés sur Yvlos.
           </p>
         </div>
@@ -61,12 +59,12 @@ import { Search as SearchIcon } from "lucide-astro";
       if (grid)
         grid.innerHTML = `
         <div class="col-span-full py-32 text-center space-y-6">
-            <div class="inline-flex items-center justify-center w-28 h-28 bg-gray-50 dark:bg-gray-800 rounded-[2.5rem] text-gray-300 dark:text-gray-700">
+            <div class="inline-flex items-center justify-center w-28 h-28 bg-[#1E293B] rounded-[2.5rem] text-[#9CA3AF]">
                 <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
             <div class="space-y-2">
-                <h2 class="text-2xl font-black text-gray-900 dark:text-white">Exploration</h2>
-                <p class="text-gray-500 dark:text-gray-400 font-medium">Recherchez parmi des milliers d'animés sur Yvlos.</p>
+                <h2 class="text-2xl font-black text-[#E5E7EB]">Exploration</h2>
+                <p class="text-[#9CA3AF] font-medium">Recherchez parmi des milliers d'animés sur Yvlos.</p>
             </div>
         </div>
       `;
@@ -77,8 +75,8 @@ import { Search as SearchIcon } from "lucide-astro";
       if (grid)
         grid.innerHTML = `
             <div class="col-span-full py-32 text-center space-y-4">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"></div>
-                <p class="text-gray-500 dark:text-gray-400 font-medium italic">Recherche en cours...</p>
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#3B82F6] border-t-transparent mx-auto"></div>
+                <p class="text-[#9CA3AF] font-medium italic">Recherche en cours...</p>
             </div>
       `;
 
@@ -112,19 +110,19 @@ import { Search as SearchIcon } from "lucide-astro";
             .map(
               (anime: any) => `
             <a href="/anime/${anime.id}" class="group block w-full">
-                <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-gray-50 dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-800">
-                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-[#1E293B] border border-[#1E293B] transition-all duration-500 group-hover:border-[#3B82F6]/30">
+                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
                 </div>
-                <div class="mt-2">
-                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-600 transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
-                    <p class="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5">${anime.format === "TV" ? "Série" : anime.format || "Anime"}</p>
+                <div class="mt-3">
+                    <h3 class="text-xs md:text-sm font-bold text-[#E5E7EB] line-clamp-2 leading-tight min-h-[2.5rem] group-hover:text-[#60A5FA] transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
+                    <p class="text-[10px] md:text-xs text-[#9CA3AF] font-medium mt-1 italic uppercase tracking-wider">${anime.format === "TV" ? "Série" : anime.format || "Anime"}</p>
                 </div>
             </a>
           `,
             )
             .join("");
         } else if (grid) {
-          grid.innerHTML = `<div class="col-span-full py-32 text-center text-gray-500 font-medium">Nous n'avons trouvé aucun résultat pour "${query}"...</div>`;
+          grid.innerHTML = `<div class="col-span-full py-32 text-center text-[#9CA3AF] font-medium">Nous n'avons trouvé aucun résultat pour "${query}"...</div>`;
         }
       } catch (err) {
         if (grid)

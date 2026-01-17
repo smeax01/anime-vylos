@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Heart, ArrowRight, Bookmark } from "lucide-astro";
+import { ArrowRight, Bookmark } from "lucide-astro";
 
 export const prerender = true;
 ---
@@ -12,12 +12,12 @@ export const prerender = true;
     <!-- Header -->
     <div class="space-y-3">
       <h1
-        class="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-4"
+        class="text-3xl md:text-5xl font-black text-[#E5E7EB] tracking-tight flex items-center gap-4 uppercase"
       >
-        <Bookmark class="text-blue-600" size={40} fill="currentColor" />
+        <Bookmark class="text-[#3B82F6]" size={40} fill="currentColor" />
         MES FAVORIS
       </h1>
-      <p class="text-sm md:text-lg text-gray-500 font-medium max-w-2xl">
+      <p class="text-sm md:text-lg text-[#9CA3AF] font-medium max-w-2xl italic">
         Retrouvez tous les animés que vous avez enregistrés pour plus tard.
       </p>
     </div>
@@ -30,7 +30,7 @@ export const prerender = true;
       <!-- Injected by JS -->
       <div id="loading" class="col-span-full py-32 text-center">
         <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"
+          class="animate-spin rounded-full h-12 w-12 border-4 border-[#3B82F6] border-t-transparent mx-auto"
         >
         </div>
       </div>
@@ -39,26 +39,24 @@ export const prerender = true;
     <!-- Empty State -->
     <div
       id="empty-favorites"
-      class="hidden py-32 text-center max-w-md mx-auto space-y-10"
+      class="hidden py-32 text-center max-w-sm mx-auto space-y-10"
     >
       <div
-        class="inline-flex items-center justify-center w-28 h-28 bg-gray-50 dark:bg-gray-800 rounded-[3rem] text-gray-300 dark:text-gray-700 shadow-inner"
+        class="inline-flex items-center justify-center w-28 h-28 bg-[#1E293B] rounded-[3rem] text-[#9CA3AF] shadow-inner"
       >
         <Bookmark size={56} />
       </div>
       <div class="space-y-3">
-        <h2
-          class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight"
-        >
+        <h2 class="text-2xl font-black text-[#E5E7EB] uppercase tracking-tight">
           C'est bien vide ici...
         </h2>
-        <p class="text-gray-500 font-medium">
+        <p class="text-[#9CA3AF] font-medium italic">
           Parcourez le catalogue pour ajouter vos animes préférés.
         </p>
       </div>
       <a
         href="/search"
-        class="inline-flex items-center justify-center px-10 py-4 text-white bg-blue-700 hover:bg-blue-800 font-black rounded-xl transition-all gap-3 group active:scale-95 shadow-xl shadow-blue-500/20"
+        class="inline-flex items-center justify-center px-10 py-4 text-white bg-[#3B82F6] hover:bg-[#60A5FA] font-black rounded-xl transition-all gap-3 group active:scale-95 shadow-xl shadow-[#3B82F6]/20"
       >
         Explorer le catalogue
         <ArrowRight
@@ -94,15 +92,15 @@ export const prerender = true;
         .map(
           (anime: any) => `
         <a href="/anime/${anime.id}" class="group block w-full">
-            <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-gray-50 dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-800">
-                <img src="${anime.image}" alt="${anime.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
-                <div class="absolute top-3 right-3 p-2 bg-blue-600 text-white rounded shadow-xl">
+            <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-[#1E293B] border border-[#1E293B] transition-all duration-500 group-hover:border-[#3B82F6]/30">
+                <img src="${anime.image}" alt="${anime.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                <div class="absolute top-3 right-3 p-2 bg-[#3B82F6] text-white rounded shadow-xl">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                 </div>
             </div>
-            <div class="mt-2">
-                <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-600 transition-colors">${anime.title}</h3>
-                <p class="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">${anime.type === "TV" ? "Série" : anime.type || "Anime"}</p>
+            <div class="mt-3">
+                <h3 class="text-xs md:text-sm font-bold text-[#E5E7EB] line-clamp-2 leading-tight min-h-[2.5rem] group-hover:text-[#60A5FA] transition-colors">${anime.title}</h3>
+                <p class="text-[10px] md:text-xs text-[#9CA3AF] font-medium italic uppercase tracking-wider mt-1">${anime.type === "TV" ? "Série" : anime.type || "Anime"}</p>
             </div>
         </a>
       `,

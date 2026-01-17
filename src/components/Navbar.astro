@@ -1,13 +1,5 @@
 ---
-import {
-  Home,
-  Search,
-  Heart,
-  User,
-  LogOut,
-  ChevronDown,
-  Bookmark,
-} from "lucide-astro";
+import { Search, ChevronDown, Bookmark, LogOut } from "lucide-astro";
 import Logo from "./Logo.astro";
 
 const pathname = Astro.url.pathname;
@@ -16,40 +8,34 @@ const isActive = (path: string) =>
 ---
 
 <nav
-  class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-[100]"
+  class="bg-[#0F172A]/80 backdrop-blur-xl border-b border-[#1E293B] sticky top-0 z-[100]"
 >
   <div class="max-w-[1600px] flex items-center h-16 mx-auto px-4 md:px-8">
     <!-- Logo -->
-    <a href="/" class="flex items-center shrink-0 mr-10 group">
+    <a href="/" class="flex items-center shrink-0 mr-10">
       <Logo scale={0.7} />
     </a>
 
     <!-- Main Links -->
     <div
-      class="hidden lg:flex items-center space-x-6 text-sm font-bold text-gray-500 dark:text-gray-400"
+      class="hidden lg:flex items-center space-x-8 text-sm font-bold text-[#9CA3AF]"
     >
       <a
         href="/"
-        class={`hover:text-blue-600 dark:hover:text-blue-500 transition-colors ${isActive("/") ? "text-blue-600 dark:text-blue-500" : ""}`}
+        class={`hover:text-[#60A5FA] transition-colors ${isActive("/") ? "text-[#3B82F6]" : ""}`}
         >Parcourir</a
       >
-      <a
-        href="/search"
-        class="hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
+      <a href="/search" class="hover:text-[#60A5FA] transition-colors"
         >Nouveau</a
       >
-      <a
-        href="/search"
-        class="hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
+      <a href="/search" class="hover:text-[#60A5FA] transition-colors"
         >Populaire</a
       >
-      <a
-        href="/search"
-        class="hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
+      <a href="/search" class="hover:text-[#60A5FA] transition-colors"
         >Simulcast</a
       >
       <div
-        class="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors"
+        class="flex items-center gap-1 cursor-pointer hover:text-[#60A5FA] transition-colors"
       >
         <span>Catégories</span>
         <ChevronDown size={14} />
@@ -61,7 +47,7 @@ const isActive = (path: string) =>
       <!-- Search icon -->
       <a
         href="/search"
-        class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+        class="p-2 text-[#9CA3AF] hover:text-[#3B82F6] transition-colors"
       >
         <Search size={22} />
       </a>
@@ -69,7 +55,7 @@ const isActive = (path: string) =>
       <!-- Favorites -->
       <a
         href="/favorites"
-        class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+        class="p-2 text-[#9CA3AF] hover:text-[#3B82F6] transition-colors"
       >
         <Bookmark size={22} />
       </a>
@@ -78,14 +64,14 @@ const isActive = (path: string) =>
       <div id="user-menu-root" class="relative">
         <button
           type="button"
-          class="flex text-sm bg-gray-200 dark:bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-white/10"
+          class="flex text-sm bg-[#1E293B] rounded-full focus:ring-4 focus:ring-[#3B82F6]/20"
           id="user-menu-button"
           aria-expanded="false"
           data-dropdown-toggle="user-dropdown"
         >
           <img
             id="nav-avatar"
-            class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+            class="w-8 h-8 rounded-full object-cover border border-[#1E293B]"
             src="/favicon.svg"
             alt="user photo"
           />
@@ -93,18 +79,17 @@ const isActive = (path: string) =>
 
         <!-- Dropdown -->
         <div
-          class="z-50 hidden my-4 text-base list-none bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700"
+          class="z-50 hidden my-4 text-base list-none bg-[#0F172A] divide-y divide-[#1E293B] rounded-xl shadow-2xl border border-[#1E293B]"
           id="user-dropdown"
         >
           <div class="px-4 py-3">
             <span
               id="nav-username"
-              class="block text-sm font-bold text-gray-900 dark:text-white"
-              >Invité</span
+              class="block text-sm font-bold text-[#E5E7EB]">Invité</span
             >
             <span
               id="nav-email"
-              class="block text-[10px] text-gray-500 truncate"
+              class="block text-[10px] text-[#9CA3AF] truncate"
               >Connectez-vous pour plus de fonctions</span
             >
           </div>
@@ -112,21 +97,21 @@ const isActive = (path: string) =>
             <li>
               <a
                 href="/profile"
-                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class="block px-4 py-2 text-sm text-[#E5E7EB] hover:bg-[#1E293B] hover:text-[#60A5FA] transition-colors"
                 >Mon compte</a
               >
             </li>
             <li>
               <a
                 href="/favorites"
-                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class="block px-4 py-2 text-sm text-[#E5E7EB] hover:bg-[#1E293B] hover:text-[#60A5FA] transition-colors"
                 >Mes favoris</a
               >
             </li>
             <li id="logout-item" class="hidden">
               <button
                 id="nav-logout"
-                class="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-[#1E293B] transition-colors"
               >
                 <LogOut size={16} />
                 Déconnexion
@@ -135,7 +120,7 @@ const isActive = (path: string) =>
             <li id="login-item">
               <a
                 href="/login"
-                class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                class="block px-4 py-2 text-sm text-[#3B82F6] hover:bg-[#1E293B] transition-colors"
                 >Connexion</a
               >
             </li>

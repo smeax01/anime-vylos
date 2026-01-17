@@ -180,8 +180,10 @@ export const getAnimeListByIds = async (ids: number[]) => {
             english
           }
           coverImage {
+            extraLarge
             large
           }
+          bannerImage
           averageScore
           genres
           format

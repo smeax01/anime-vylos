@@ -1,198 +1,112 @@
 ---
 import Logo from "./Logo.astro";
+import { Github, Twitter, Disc as Discord, Youtube } from "lucide-astro";
 ---
 
-<footer class="footer">
-  <div class="container footer-content">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <Logo />
-        <p class="brand-desc">
-          L'expérience anime ultime. Stream gratuit sans pub.
+<footer
+  class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pb-20 md:pb-8"
+>
+  <div class="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
+    <div class="md:flex md:justify-between">
+      <div class="mb-6 md:mb-0">
+        <a href="/" class="flex items-center">
+          <Logo scale={0.8} />
+          <span
+            class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white ms-3"
+          ></span>
+        </a>
+        <p class="mt-4 text-gray-500 dark:text-gray-400 max-w-sm">
+          L'expérience anime ultime. Stream gratuit sans publicité, propulsé par
+          la communauté.
         </p>
-        <div class="social-links">
-          <a href="#" aria-label="Twitter">Twitter</a>
-          <a href="#" aria-label="Instagram">Instagram</a>
-          <a href="#" aria-label="Discord">Discord</a>
-        </div>
       </div>
-
-      <div class="footer-links-group">
-        <div class="links-col">
-          <h4 class="col-title">Navigation</h4>
-          <a href="/">Accueil</a>
-          <a href="/search">Recherche</a>
-          <a href="/favorites">Favoris</a>
+      <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
+        <div>
+          <h2
+            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
+          >
+            Navigation
+          </h2>
+          <ul class="text-gray-500 dark:text-gray-400 font-medium">
+            <li class="mb-4">
+              <a href="/" class="hover:underline">Accueil</a>
+            </li>
+            <li class="mb-4">
+              <a href="/search" class="hover:underline">Parcourir</a>
+            </li>
+            <li>
+              <a href="/favorites" class="hover:underline">Favoris</a>
+            </li>
+          </ul>
         </div>
-        <div class="links-col">
-          <h4 class="col-title">Compte</h4>
-          <a href="/profile">Profil</a>
-          <a href="/profile">Historique</a>
-          <a href="/profile">Réglages</a>
+        <div>
+          <h2
+            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
+          >
+            Communauté
+          </h2>
+          <ul class="text-gray-500 dark:text-gray-400 font-medium">
+            <li class="mb-4">
+              <a href="#" class="hover:underline">Discord</a>
+            </li>
+            <li>
+              <a href="#" class="hover:underline">Github</a>
+            </li>
+          </ul>
         </div>
-        <div class="links-col">
-          <h4 class="col-title">Support</h4>
-          <a href="/support">Aide</a>
-          <a href="/support">Contact</a>
-          <a href="/support">Conditions</a>
+        <div>
+          <h2
+            class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white"
+          >
+            Légal
+          </h2>
+          <ul class="text-gray-500 dark:text-gray-400 font-medium">
+            <li class="mb-4">
+              <a href="/support" class="hover:underline">Support</a>
+            </li>
+            <li>
+              <a href="#" class="hover:underline">Conditions d'utilisation</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
-
-    <div class="footer-bottom">
-      <div class="bottom-left">
-        <p>&copy; {new Date().getFullYear()} Vylos. Tous droits réservés.</p>
-      </div>
-      <div class="bottom-right">
-        <p class="love">Fait avec passion pour les fans d'anime.</p>
+    <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400"
+        >© {new Date().getFullYear()}
+        <a href="/" class="hover:underline">Yvlos™</a>. Tous droits réservés.
+      </span>
+      <div class="flex mt-4 space-x-5 sm:justify-center sm:mt-0">
+        <a
+          href="#"
+          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+        >
+          <Discord size={18} />
+          <span class="sr-only">Discord page</span>
+        </a>
+        <a
+          href="#"
+          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+        >
+          <Twitter size={18} />
+          <span class="sr-only">Twitter page</span>
+        </a>
+        <a
+          href="#"
+          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+        >
+          <Github size={18} />
+          <span class="sr-only">GitHub account</span>
+        </a>
+        <a
+          href="#"
+          class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+        >
+          <Youtube size={18} />
+          <span class="sr-only">Youtube channel</span>
+        </a>
       </div>
     </div>
   </div>
 </footer>
-
-<style>
-  .footer {
-    background: #020617;
-    padding: 5rem 0 8rem 0; /* Padding bottom for mobile navigation bar */
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    color: white;
-  }
-
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4rem;
-  }
-
-  .footer-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-
-  @media (min-width: 1024px) {
-    .footer-grid {
-      grid-template-columns: 1.2fr 2fr;
-      gap: 6rem;
-    }
-  }
-
-  .footer-brand {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .brand-desc {
-    color: var(--color-text-muted);
-    font-size: 1rem;
-    line-height: 1.6;
-    max-width: 320px;
-  }
-
-  .social-links {
-    display: flex;
-    gap: 1.5rem;
-  }
-
-  .social-links a {
-    color: white;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-    opacity: 0.6;
-    transition: all 0.2s ease;
-  }
-
-  .social-links a:hover {
-    opacity: 1;
-    color: var(--color-primary);
-    transform: translateY(-2px);
-  }
-
-  .footer-links-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2.5rem;
-  }
-
-  @media (min-width: 640px) {
-    .footer-links-group {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .links-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .col-title {
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-  }
-
-  .links-col a {
-    color: var(--color-text-muted);
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-    width: fit-content;
-  }
-
-  .links-col a:hover {
-    color: white;
-  }
-
-  .footer-bottom {
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: center;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-
-  @media (min-width: 768px) {
-    .footer-bottom {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-  }
-
-  .love {
-    opacity: 0.6;
-    font-size: 0.85rem;
-    font-style: italic;
-  }
-
-  @media (max-width: 768px) {
-    .footer-brand {
-      align-items: center;
-      text-align: center;
-    }
-    .brand-desc {
-      max-width: 100%;
-    }
-    .social-links {
-      justify-content: center;
-    }
-    .footer-links-group {
-      text-align: center;
-    }
-    .links-col {
-      align-items: center;
-    }
-    .links-col a {
-      width: auto;
-    }
-  }
-</style>

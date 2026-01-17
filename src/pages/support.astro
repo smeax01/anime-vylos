@@ -1,157 +1,228 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Mail, MessageCircle, Github, LifeBuoy } from "lucide-astro";
+import {
+  Mail,
+  MessageCircle,
+  Github,
+  LifeBuoy,
+  ChevronDown,
+} from "lucide-astro";
 ---
 
-<Layout title="Support | Vylos">
-  <div class="container support-page">
-    <div class="support-card">
-      <div class="icon-header">
-        <LifeBuoy size={48} />
+<Layout title="Support | Yvlos">
+  <section class="max-w-screen-xl mx-auto px-4 py-12 md:py-20 space-y-16">
+    <!-- Header -->
+    <div class="text-center space-y-4 max-w-2xl mx-auto">
+      <div
+        class="inline-flex items-center justify-center w-20 h-20 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 rounded-3xl mb-4"
+      >
+        <LifeBuoy size={40} />
       </div>
-      <h1>Besoin d'aide ?</h1>
-      <p>
-        L'équipe Vylos est là pour vous aider. Si vous rencontrez un bug ou si
-        un anime est manquant, contactez-nous !
+      <h1
+        class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight"
+      >
+        On est là pour vous <span class="text-blue-600">aider</span>.
+      </h1>
+      <p
+        class="text-lg text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
+      >
+        Un problème avec le lecteur ? Un anime manquant ? Ou juste envie de
+        partager votre passion ? Notre équipe est à votre écoute sur tous nos
+        réseaux.
       </p>
+    </div>
 
-      <div class="contact-methods">
-        <div class="method-card">
-          <Mail class="icon-mail" />
-          <h3>Email</h3>
-          <p>contact@vylos.app</p>
-          <a href="mailto:contact@vylos.app" class="btn-contact"
-            >Envoyer un mail</a
-          >
+    <!-- Contact Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div
+        class="bg-white dark:bg-gray-900 rounded-3xl p-8 border border-gray-200 dark:border-gray-800 shadow-sm text-center space-y-6 transition-all hover:shadow-md"
+      >
+        <div
+          class="w-16 h-16 bg-blue-50 dark:bg-blue-950 rounded-2xl flex items-center justify-center mx-auto text-blue-600"
+        >
+          <Mail size={32} />
         </div>
-
-        <div class="method-card">
-          <MessageCircle class="icon-discord" />
-          <h3>Discord</h3>
-          <p>Rejoignez le serveur Vylos</p>
-          <a href="#" class="btn-contact discord">Discord (ID: Vylos#0001)</a>
+        <div class="space-y-2">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Email</h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            Pour les demandes officielles ou techniques.
+          </p>
         </div>
+        <a
+          href="mailto:contact@yvlos.app"
+          class="block w-full py-4 bg-gray-50 dark:bg-gray-800 hover:bg-blue-600 hover:text-white transition-all rounded-2xl font-bold text-gray-700 dark:text-white"
+        >
+          contact@yvlos.app
+        </a>
       </div>
 
-      <div class="faq">
-        <h2>Questions fréquentes</h2>
-        <details>
-          <summary>Le lecteur ne se lance pas ?</summary>
-          <p>
-            Essayez de changer de navigateur ou de désactiver vos bloqueurs de
-            publicité. Pensez aussi à vider votre cache.
+      <div
+        class="bg-white dark:bg-gray-900 rounded-3xl p-8 border border-gray-200 dark:border-gray-800 shadow-sm text-center space-y-6 transition-all hover:shadow-md"
+      >
+        <div
+          class="w-16 h-16 bg-[#5865F2]/10 rounded-2xl flex items-center justify-center mx-auto text-[#5865F2]"
+        >
+          <MessageCircle size={32} />
+        </div>
+        <div class="space-y-2">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+            Discord
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            Rejoignez notre communauté dynamique.
           </p>
-        </details>
-        <details>
-          <summary>Un anime est incomplet ?</summary>
-          <p>
-            Les épisodes sont ajoutés automatiquement dès leur sortie. S'il
-            manque une saison, utilisez la section "Relations" sur la page de
-            l'anime.
-          </p>
-        </details>
+        </div>
+        <a
+          href="#"
+          class="block w-full py-4 bg-[#5865F2] hover:bg-[#4752c4] transition-all rounded-2xl font-bold text-white shadow-lg shadow-[#5865F2]/20"
+        >
+          Rejoindre le Discord
+        </a>
       </div>
     </div>
-  </div>
+
+    <!-- FAQ Section -->
+    <div class="max-w-3xl mx-auto space-y-10 pt-10">
+      <h2
+        class="text-2xl font-black text-gray-900 dark:text-white text-center uppercase tracking-widest text-sm"
+      >
+        Foire aux questions
+      </h2>
+
+      <div
+        id="accordion-flush"
+        data-accordion="collapse"
+        data-active-classes="bg-white dark:bg-gray-950 text-gray-900 dark:text-white"
+        data-inactive-classes="text-gray-500 dark:text-gray-400"
+      >
+        <div class="border-b border-gray-200 dark:border-gray-800">
+          <button
+            type="button"
+            class="flex items-center justify-between w-full py-5 font-bold text-left text-gray-500 dark:text-gray-400"
+            data-accordion-target="#faq-1"
+            aria-expanded="true"
+            aria-controls="faq-1"
+          >
+            <span>Le lecteur ne se lance pas ou reste noir ?</span>
+            <ChevronDown
+              size={20}
+              class="accordion-icon transition-transform"
+            />
+          </button>
+          <div
+            id="faq-1"
+            class="hidden"
+            aria-labelledby="accordion-flush-heading-1"
+          >
+            <div
+              class="py-5 font-medium border-b border-gray-200 dark:border-gray-800 space-y-4"
+            >
+              <p class="text-gray-600 dark:text-gray-400">
+                Cela peut arriver pour plusieurs raisons :
+              </p>
+              <ul
+                class="list-disc pl-5 text-gray-500 dark:text-gray-400 space-y-2"
+              >
+                <li>Désactivez votre bloqueur de publicité (AdBlock).</li>
+                <li>Vérifiez votre connexion internet.</li>
+                <li>Essayez de vider le cache de votre navigateur.</li>
+                <li>Tentez l'ouverture sur Google Chrome ou Firefox.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-b border-gray-200 dark:border-gray-800">
+          <button
+            type="button"
+            class="flex items-center justify-between w-full py-5 font-bold text-left text-gray-500 dark:text-gray-400"
+            data-accordion-target="#faq-2"
+            aria-expanded="false"
+            aria-controls="faq-2"
+          >
+            <span>Comment sont ajoutés les nouveaux épisodes ?</span>
+            <ChevronDown
+              size={20}
+              class="accordion-icon transition-transform"
+            />
+          </button>
+          <div
+            id="faq-2"
+            class="hidden"
+            aria-labelledby="accordion-flush-heading-2"
+          >
+            <div class="py-5 font-medium space-y-2">
+              <p class="text-gray-500 dark:text-gray-400">
+                Les épisodes sont synchronisés en temps réel avec les sorties
+                officielles. Si un épisode vient de sortir au Japon, il faut
+                généralement attendre 1 à 2 heures pour la VOSTFR.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-b border-gray-200 dark:border-gray-800">
+          <button
+            type="button"
+            class="flex items-center justify-between w-full py-5 font-bold text-left text-gray-500 dark:text-gray-400"
+            data-accordion-target="#faq-3"
+            aria-expanded="false"
+            aria-controls="faq-3"
+          >
+            <span>Yvlos est-il gratuit ?</span>
+            <ChevronDown
+              size={20}
+              class="accordion-icon transition-transform"
+            />
+          </button>
+          <div
+            id="faq-3"
+            class="hidden"
+            aria-labelledby="accordion-flush-heading-3"
+          >
+            <div class="py-5 font-medium space-y-2">
+              <p class="text-gray-500 dark:text-gray-400">
+                Oui, Yvlos est 100% gratuit, sans publicité intrusive et sans
+                abonnement forfaitaire. Nous fonctionnons grâce aux dons de la
+                communauté pour payer les serveurs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </Layout>
 
-<style>
-  .support-page {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
-    display: flex;
-    justify-content: center;
-  }
-  .support-card {
-    background: var(--color-bg-card);
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 3rem;
-    text-align: center;
-    max-width: 800px;
-    width: 100%;
-  }
+<script is:inline>
+  // Accordion Logic simple (since flowbite js might take time to load)
+  document.querySelectorAll("[data-accordion-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.getAttribute("data-accordion-target");
+      const target = document.querySelector(targetId);
+      const icon = button.querySelector(".accordion-icon");
 
-  .icon-header {
-    color: var(--color-primary);
-    margin-bottom: 1.5rem;
-  }
-  h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-  }
-  p {
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
-  }
+      const isExpanded = button.getAttribute("aria-expanded") === "true";
 
-  .contact-methods {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-  }
-  .method-card {
-    background: rgba(255, 255, 255, 0.02);
-    padding: 2rem;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-  }
+      // Close all others
+      document
+        .querySelectorAll("[data-accordion-target]")
+        .forEach((otherButton) => {
+          if (otherButton !== button) {
+            otherButton.setAttribute("aria-expanded", "false");
+            const otherTarget = document.querySelector(
+              otherButton.getAttribute("data-accordion-target"),
+            );
+            otherTarget?.classList.add("hidden");
+            otherButton
+              .querySelector(".accordion-icon")
+              ?.classList.remove("rotate-180");
+          }
+        });
 
-  .icon-mail {
-    color: #3b82f6;
-  }
-  .icon-discord {
-    color: #5865f2;
-  }
-
-  .btn-contact {
-    background: var(--color-primary);
-    color: white;
-    padding: 0.6rem 1.2rem;
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-    transition: transform 0.2s;
-  }
-  .btn-contact.discord {
-    background: #5865f2;
-  }
-  .btn-contact:hover {
-    transform: scale(1.05);
-  }
-
-  .faq {
-    text-align: left;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 2rem;
-  }
-  .faq h2 {
-    font-size: 1.3rem;
-    margin-bottom: 1.5rem;
-  }
-  details {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    cursor: pointer;
-  }
-  summary {
-    font-weight: 600;
-    color: white;
-  }
-  details p {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #94a3b8;
-    margin-bottom: 0;
-  }
-</style>
+      button.setAttribute("aria-expanded", !isExpanded);
+      target?.classList.toggle("hidden");
+      icon?.classList.toggle("rotate-180");
+    });
+  });
+</script>

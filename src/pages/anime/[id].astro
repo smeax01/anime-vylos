@@ -9,8 +9,9 @@ import {
   AlertCircle,
   RefreshCw,
   Heart,
-  Settings,
+  Star,
   Globe,
+  Monitor,
 } from "lucide-astro";
 
 export const prerender = false;
@@ -30,11 +31,10 @@ try {
 if (!anime) return Astro.redirect("/404");
 
 const title = anime.title.romaji || anime.title.english;
-const cover = anime.bannerImage || anime.coverImage.extraLarge;
 ---
 
 <Layout title={title}>
-  <!-- Pass server data to client safely -->
+  <!-- Server-side data for JS -->
   <div
     id="anime-data"
     data-id={anime.id}
@@ -46,111 +46,244 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   >
   </div>
 
-  <div class="vylos-stream-page">
-    <div class="stream-nav">
-      <a href="/" class="circle-back"><ArrowLeft size={24} /></a>
-      <div class="anime-mini-info">
-        <span class="mini-title">{title}</span>
-        <span class="mini-status" id="mini-ep-display">Chargement...</span>
-      </div>
-      <div class="nav-actions">
-        <button id="toggle-favorite" class="icon-btn">
-          <Heart id="fav-icon" size={24} />
-        </button>
-      </div>
-    </div>
-
-    <div class="main-player-section">
-      <div class="player-viewport">
-        <div id="player-loading" class="player-overlay">
-          <div class="vylos-loader"></div>
-          <p id="status-text">Recherche sur Anime-Sama...</p>
+  <div class="bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <!-- Player Section -->
+    <div class="bg-black relative pt-4 pb-4 md:pt-10 md:pb-10 shadow-lg">
+      <div class="max-w-screen-xl mx-auto px-4">
+        <!-- Breadcrumbs / Top Nav -->
+        <div class="flex items-center justify-between mb-4 md:mb-6">
+          <a
+            href="/"
+            class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={18} class="mr-2" />
+            Retour à l'accueil
+          </a>
+          <div class="hidden md:flex items-center gap-4">
+            <button
+              id="toggle-favorite"
+              class="flex items-center gap-2 text-gray-400 hover:text-pink-500 transition-colors"
+            >
+              <Heart id="fav-icon" size={20} />
+              <span class="text-xs font-bold uppercase tracking-wider"
+                >Favoris</span
+              >
+            </button>
+            <button
+              id="reload-player"
+              class="flex items-center gap-2 text-gray-400 hover:text-blue-500 transition-colors"
+            >
+              <RefreshCw size={18} />
+              <span class="text-xs font-bold uppercase tracking-wider"
+                >Rafraîchir</span
+              >
+            </button>
+          </div>
         </div>
 
-        <iframe
-          id="content-frame"
-          class="stream-iframe"
-          src="about:blank"
-          allowfullscreen
-          allow="autoplay; encrypted-media"
+        <!-- Main Player -->
+        <div
+          class="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-2xl"
         >
-        </iframe>
-      </div>
-
-      <div class="player-toolbar">
-        <div class="toolbar-left">
-          <div class="lang-selector">
-            <button class="lang-btn" data-lang="vostfr">VOSTFR</button>
-            <button class="lang-btn active" data-lang="vf">VF</button>
+          <div
+            id="player-loading"
+            class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900 gap-4"
+          >
+            <div
+              class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"
+            >
+            </div>
+            <p id="status-text" class="text-gray-400 font-medium">
+              Recherche sur les serveurs...
+            </p>
           </div>
-          <div class="server-selector">
-            <span class="toolbar-label">Lecteur :</span>
-            <div class="server-chips" id="as-servers">
-              <button class="chip active">Sibnet (Sélectionné)</button>
+
+          <iframe
+            id="content-frame"
+            class="w-full h-full border-none"
+            src="about:blank"
+            allowfullscreen
+            allow="autoplay; encrypted-media"></iframe>
+        </div>
+
+        <!-- Player Controls (Mobile First) -->
+        <div
+          class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
+          <div class="flex items-center gap-4 w-full sm:w-auto">
+            <div
+              class="inline-flex rounded-xl shadow-sm bg-gray-800 p-1"
+              role="group"
+            >
+              <button
+                type="button"
+                data-lang="vf"
+                class="lang-btn px-4 py-2 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white"
+              >
+                VF
+              </button>
+              <button
+                type="button"
+                data-lang="vostfr"
+                class="lang-btn px-4 py-2 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white"
+              >
+                VOSTFR
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2 text-gray-400">
+              <Monitor size={16} />
+              <span class="text-xs font-bold uppercase tracking-wider"
+                >Lecteur:</span
+              >
+              <span
+                class="text-xs font-bold text-blue-500 uppercase tracking-wider"
+                >Sibnet</span
+              >
             </div>
           </div>
-        </div>
-        <div class="toolbar-right">
-          <button class="action-btn" id="reload-player">
-            <RefreshCw size={14} /> Actualiser
-          </button>
+
+          <div
+            class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto scrollbar-hide"
+          >
+            <div
+              id="mini-ep-display"
+              class="bg-blue-600 px-3 py-1.5 rounded-lg text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+            >
+              Chargement des épisodes...
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="container stream-content">
-      <div class="stream-layout">
-        <div class="main-col">
-          <div class="title-area">
-            <h1 class="anime-title">{title}</h1>
-            <div class="badges">
-              <span class="badge score"
-                >★ {anime.averageScore ? anime.averageScore / 10 : "?"}</span
+    <!-- Info Section -->
+    <div class="max-w-screen-xl mx-auto px-4 py-10">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <!-- Main Info -->
+        <div class="lg:col-span-2 space-y-10">
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center gap-3">
+              <span
+                class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 text-xs font-bold px-2.5 py-1 rounded-lg border border-blue-600/20"
+                >{anime.status}</span
               >
-              <span class="badge status">{anime.status}</span>
+              {
+                anime.averageScore && (
+                  <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 text-xs font-bold px-2.5 py-1 rounded-lg border border-yellow-600/20 flex items-center gap-1">
+                    <Star size={12} fill="currentColor" />
+                    {anime.averageScore / 10}
+                  </span>
+                )
+              }
+              <span
+                class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-bold px-2.5 py-1 rounded-lg border border-gray-700/20"
+                >{anime.format}</span
+              >
+            </div>
+            <h1
+              class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-tight"
+            >
+              {title}
+            </h1>
+          </div>
+
+          <!-- Episodes -->
+          <div
+            class="bg-white dark:bg-gray-900 rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-gray-800 shadow-sm space-y-6"
+          >
+            <div
+              class="flex items-center justify-between border-b dark:border-gray-800 pb-4"
+            >
+              <h2
+                class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <Tv size={24} class="text-blue-600" />
+                Épisodes <span
+                  id="progress-indicator"
+                  class="text-sm font-medium text-gray-500 ml-2"></span>
+              </h2>
+            </div>
+
+            <div
+              id="ep-list"
+              class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3"
+            >
+              <!-- Épisodes injectés via JS -->
+            </div>
+
+            <div
+              id="error-box"
+              class="hidden p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-500 flex items-center gap-3 text-sm"
+            >
+              <AlertCircle size={20} />
+              <p class="font-medium">
+                Désolé, cette version n'est pas encore disponible pour cet anime
+                sur nos serveurs.
+              </p>
             </div>
           </div>
 
-          <div class="episodes-section">
-            <div class="section-header">
-              <h3 class="section-title"><Tv size={20} /> Liste des Épisodes</h3>
-              <div id="progress-indicator" class="progress-badge"></div>
-            </div>
-            <div class="ep-selector-grid" id="ep-list">
-              <!-- Épisodes injectés ici -->
-            </div>
-          </div>
-
-          <div id="error-box" class="hidden error-box">
-            <AlertCircle size={24} />
-            <div>
-              <strong
-                >Cette version (VOSTFR/VF) n'est pas disponible pour cet anime.</strong
-              ><br />
-              <small
-                >Essayez de changer la langue ou vérifiez un autre anime.</small
-              >
-            </div>
+          <!-- Synopsis Mobile -->
+          <div class="lg:hidden space-y-4">
+            <h3
+              class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"
+            >
+              <Info size={20} class="text-blue-500" />
+              Synopsis
+            </h3>
+            <p
+              class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm"
+              set:html={anime.description}
+            />
           </div>
         </div>
 
-        <div class="side-col">
-          <h3 class="section-title"><Info size={20} /> Synopsis</h3>
-          <p class="description" set:html={anime.description} />
+        <!-- Sidebar -->
+        <div class="space-y-10">
+          <!-- Synopsis Desktop -->
+          <div class="hidden lg:block space-y-4">
+            <h3
+              class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 uppercase tracking-wider text-sm"
+            >
+              Synopsis
+            </h3>
+            <p
+              class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm"
+              set:html={anime.description}
+            />
+          </div>
 
+          <!-- Relations -->
           {
             anime.relations?.edges && anime.relations.edges.length > 0 && (
-              <div class="seasons-area">
-                <h3 class="section-title">Relations</h3>
-                <div class="seasons-stack">
+              <div class="space-y-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
+                  Relatif à l'histoire
+                </h3>
+                <div class="space-y-4">
                   {anime.relations.edges
                     .filter((e: any) => e.node.type === "ANIME")
+                    .slice(0, 5)
                     .map((rel: any) => (
-                      <a href={`/anime/${rel.node.id}`} class="season-link">
-                        <img src={rel.node.coverImage.medium} alt="" />
-                        <div class="season-info">
-                          <span class="rel-tag">{rel.relationType}</span>
-                          <span class="rel-name">{rel.node.title.romaji}</span>
+                      <a
+                        href={`/anime/${rel.node.id}`}
+                        class="flex items-center gap-4 group"
+                      >
+                        <div class="w-16 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200 dark:bg-gray-800">
+                          <img
+                            src={rel.node.coverImage.medium}
+                            alt=""
+                            class="w-full h-full object-cover transition-transform group-hover:scale-110"
+                          />
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">
+                            {rel.relationType}
+                          </p>
+                          <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                            {rel.node.title.romaji || rel.node.title.english}
+                          </p>
                         </div>
                       </a>
                     ))}
@@ -165,13 +298,11 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 </Layout>
 
 <script>
-  // DOM Elements
   const dataEl = document.getElementById("anime-data");
   const frame = document.getElementById("content-frame") as HTMLIFrameElement;
   const loader = document.getElementById("player-loading");
   const statusText = document.getElementById("status-text");
   const epList = document.getElementById("ep-list");
-  const serverBox = document.getElementById("as-servers");
   const miniEp = document.getElementById("mini-ep-display");
   const errorBox = document.getElementById("error-box");
   const favBtn = document.getElementById("toggle-favorite");
@@ -189,9 +320,8 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   let activeServer = "eps3"; // Default: Sibnet
   let activeLang = "vf"; // Default: VF
 
-  // --- LOCAL STORAGE LOGIC ---
   function getProgress() {
-    const data = localStorage.getItem(`vylos_progress_${animeId}`);
+    const data = localStorage.getItem(`yvlos_progress_${animeId}`);
     return data ? JSON.parse(data) : { lastEp: 1, history: [] };
   }
 
@@ -201,14 +331,13 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
     progress.lastEp = ep;
     if (isNewEpisode) progress.history.push(ep);
-    localStorage.setItem(`vylos_progress_${animeId}`, JSON.stringify(progress));
+    localStorage.setItem(`yvlos_progress_${animeId}`, JSON.stringify(progress));
 
-    // Update Global History (LocalStorage)
     const globalHistory = JSON.parse(
-      localStorage.getItem("vylos_global_history") || "[]"
+      localStorage.getItem("yvlos_global_history") || "[]",
     );
     const existingIndex = globalHistory.findIndex(
-      (a: any) => a.id === animeId.toString()
+      (a: any) => a.id === animeId.toString(),
     );
     const animeEntry = {
       id: animeId.toString(),
@@ -222,16 +351,13 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     if (existingIndex > -1) globalHistory.splice(existingIndex, 1);
     globalHistory.unshift(animeEntry);
     localStorage.setItem(
-      "vylos_global_history",
-      JSON.stringify(globalHistory.slice(0, 20))
+      "yvlos_global_history",
+      JSON.stringify(globalHistory.slice(0, 20)),
     );
 
-    // Sync with Database if logged in
-    const sessionStr = localStorage.getItem("vylos_session");
+    const sessionStr = localStorage.getItem("yvlos_session");
     if (sessionStr) {
       const user = JSON.parse(sessionStr);
-
-      // Update DB history
       fetch("/api/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,9 +372,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
       if (isNewEpisode) {
         user.stats.episodesSeen += 1;
-        localStorage.setItem("vylos_session", JSON.stringify(user));
-
-        // Update DB User Entry (episodes count)
+        localStorage.setItem("yvlos_session", JSON.stringify(user));
         fetch("/api/auth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -260,24 +384,23 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
         }).catch((e) => console.error("Stats update failed", e));
       }
     }
-
     updateUIProgress();
   }
 
-  async function toggleFavorite() {
+  function toggleFavorite() {
     const favorites = JSON.parse(
-      localStorage.getItem("vylos_favorites") || "[]"
+      localStorage.getItem("yvlos_favorites") || "[]",
     );
     const index = favorites.findIndex(
-      (fav: any) => fav.id === animeId.toString()
+      (fav: any) => fav.id === animeId.toString(),
     );
-    const sessionStr = localStorage.getItem("vylos_session");
+    const sessionStr = localStorage.getItem("yvlos_session");
     const user = sessionStr ? JSON.parse(sessionStr) : null;
     let isFavorite = false;
 
     if (index > -1) {
       favorites.splice(index, 1);
-      favIcon?.classList.remove("active");
+      favIcon?.classList.remove("fill-pink-500", "text-pink-500");
     } else {
       isFavorite = true;
       favorites.push({
@@ -286,11 +409,10 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
         image: animeCover,
         type: animeType,
       });
-      favIcon?.classList.add("active");
+      favIcon?.classList.add("fill-pink-500", "text-pink-500");
     }
-    localStorage.setItem("vylos_favorites", JSON.stringify(favorites));
+    localStorage.setItem("yvlos_favorites", JSON.stringify(favorites));
 
-    // Sync with DB
     if (user) {
       fetch("/api/sync", {
         method: "POST",
@@ -310,68 +432,64 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 
   function updateUIProgress() {
     const progress = getProgress();
-    const history = progress.history;
     document.querySelectorAll(".ep-chip").forEach((chip: any) => {
       const epNum = parseInt(chip.dataset.num);
-      if (history.includes(epNum)) chip.classList.add("watched");
+      if (progress.history.includes(epNum)) {
+        chip.classList.add("bg-gray-200", "dark:bg-gray-800", "text-gray-400");
+      }
     });
-    if (progressBadge) {
-      progressBadge.innerText = `${history.length} épisodes vus`;
-    }
+    if (progressBadge)
+      progressBadge.innerText = `(${progress.history.length} vus)`;
   }
 
   function checkFavorite() {
     const favorites = JSON.parse(
-      localStorage.getItem("vylos_favorites") || "[]"
+      localStorage.getItem("yvlos_favorites") || "[]",
     );
     if (favorites.some((fav: any) => fav.id === animeId.toString())) {
-      favIcon?.classList.add("active");
+      favIcon?.classList.add("fill-pink-500", "text-pink-500");
     }
   }
 
-  // --- ANIME-SAMA LOGIC ---
   function getSlugs(title: string) {
-    const base = title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    const clean = base
-      .replace(/[^a-z0-9]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-    return [clean];
+    return [
+      title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, ""),
+    ];
   }
 
-  // --- API ---
   async function switchLang(lang: string) {
     activeLang = lang;
     langBtns.forEach((b) => {
-      b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+      const isActive = b.getAttribute("data-lang") === lang;
+      b.classList.toggle("bg-blue-600", isActive);
+      b.classList.toggle("text-white", isActive);
+      b.classList.toggle("text-gray-400", !isActive);
     });
 
-    statusText!.innerText = `Chargement des sources ${lang.toUpperCase()}...`;
-    loader!.style.display = "flex";
-    errorBox!.classList.add("hidden");
+    statusText!.innerText = `Chargement en ${lang.toUpperCase()}...`;
+    if (loader) loader.style.display = "flex";
+    errorBox?.classList.add("hidden");
 
     const sources = await searchAnimeSama(lang);
 
     if (sources) {
       currentSources = sources;
-      // Preference: Sibnet (eps3) > Previous Server > First available
-      const lastServer = getProgress().server;
+      const lastServer = getProgress().server || "eps3";
       activeServer = currentSources[lastServer]
         ? lastServer
-        : currentSources.eps3
-          ? "eps3"
-          : Object.keys(currentSources)[0];
+        : Object.keys(currentSources)[0];
 
-      renderServers();
       renderEpisodes();
       loadVideo(currentEp);
     } else {
-      loader!.style.display = "none";
-      errorBox!.classList.remove("hidden");
-      statusText!.innerText = `Aucune source trouvée en ${lang.toUpperCase()} pour cet animé.`;
+      if (loader) loader.style.display = "none";
+      errorBox?.classList.remove("hidden");
     }
   }
 
@@ -389,30 +507,28 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     return null;
   }
 
-  function renderServers() {
-    serverBox!.innerHTML =
-      '<button class="chip active">Sibnet (Sélectionné)</button>';
-  }
-
   function renderEpisodes() {
-    epList!.innerHTML = "";
+    if (!epList) return;
+    epList.innerHTML = "";
     const episodes = currentSources[activeServer] || [];
-    episodes.forEach((url: string, index: number) => {
+    episodes.forEach((_: any, index: number) => {
       const num = index + 1;
       const btn = document.createElement("button");
-      btn.className = `ep-chip ${num === currentEp ? "active" : ""}`;
+      btn.className = `ep-chip p-2 text-sm font-bold rounded-xl transition-all border border-gray-200 dark:border-gray-800 hover:border-blue-500 hover:text-blue-500 flex items-center justify-center aspect-square ${num === currentEp ? "bg-blue-600 text-white border-blue-600" : "text-gray-700 dark:text-gray-300"}`;
       btn.innerText = num.toString();
       btn.dataset.num = num.toString();
       btn.onclick = () => loadVideo(num);
-      epList!.appendChild(btn);
+      epList.appendChild(btn);
     });
     updateUIProgress();
   }
 
   function loadVideo(num: number) {
+    if (!currentEp) return;
     currentEp = num;
-    miniEp!.innerText = `${activeLang.toUpperCase()} • Épisode ${num}`;
-    loader!.style.display = "flex";
+    if (miniEp)
+      miniEp.innerText = `${activeLang.toUpperCase()} • ÉPISODE ${num}`;
+    if (loader) loader.style.display = "flex";
 
     const episodes = currentSources[activeServer] || [];
     const url = episodes[num - 1];
@@ -420,34 +536,27 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
     if (url) {
       frame.src = url;
       saveProgress(num);
-
-      document
-        .querySelectorAll(".ep-chip")
-        .forEach((c) => c.classList.remove("active"));
-      const activeChip = document.querySelector(`.ep-chip[data-num="${num}"]`);
-      if (activeChip) activeChip.classList.add("active");
-
+      document.querySelectorAll(".ep-chip").forEach((c) => {
+        const n = parseInt((c as HTMLElement).dataset.num || "0");
+        c.classList.remove("bg-blue-600", "text-white", "border-blue-600");
+        if (n === num)
+          c.classList.add("bg-blue-600", "text-white", "border-blue-600");
+      });
       setTimeout(() => {
-        loader!.style.display = "none";
-      }, 1000);
+        if (loader) loader.style.display = "none";
+      }, 1500);
     } else {
-      statusText!.innerText = "Épisode non disponible sur ce serveur.";
-      loader!.style.display = "none";
+      if (loader) loader.style.display = "none";
+      errorBox?.classList.remove("hidden");
     }
   }
 
-  // --- INIT ---
   async function init() {
     checkFavorite();
-
-    // Check URL params first, then localStorage
     const params = new URLSearchParams(window.location.search);
     const saved = getProgress();
-
     currentEp = Number(params.get("ep")) || saved.lastEp || 1;
     const startLang = params.get("lang") || saved.lang || "vostfr";
-    activeServer = saved.server || "eps3";
-
     await switchLang(startLang);
   }
 
@@ -455,10 +564,7 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
   langBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const lang = btn.getAttribute("data-lang");
-      if (lang && lang !== activeLang) {
-        // currentEp = 1; // Reset ep if switching lang manually? No, keep it.
-        switchLang(lang);
-      }
+      if (lang && lang !== activeLang) switchLang(lang);
     });
   });
 
@@ -469,432 +575,11 @@ const cover = anime.bannerImage || anime.coverImage.extraLarge;
 </script>
 
 <style>
-  .hidden {
-    display: none !important;
-  }
-  .vylos-stream-page {
-    min-height: 100vh;
-    background: #020617;
-    color: white;
-  }
-
-  .stream-nav {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 1rem 1.5rem;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: linear-gradient(to bottom, rgba(2, 6, 23, 0.95), transparent);
-  }
-
-  .circle-back {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: 0.2s;
-  }
-  .circle-back:hover {
-    background: var(--color-primary);
-  }
-
-  .anime-mini-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .mini-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mini-status {
-    font-size: 0.7rem;
-    color: var(--color-primary);
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .nav-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .icon-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  #fav-icon.active {
-    fill: #f43f5e;
-    color: #f43f5e;
-  }
-
-  /* PLAYER */
-  .main-player-section {
-    background: #000;
-    padding-top: 60px; /* Reduced for mobile */
-  }
-
-  @media (min-width: 768px) {
-    .main-player-section {
-      padding-top: 80px;
-    }
-  }
-
-  .player-viewport {
-    width: 100%;
-    aspect-ratio: 16/9;
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    background: #000;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  }
-  .stream-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-
-  .player-overlay {
-    position: absolute;
-    inset: 0;
-    background: #000;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-  }
-  .vylos-loader {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(59, 130, 246, 0.1);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .player-toolbar {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: #0f172a;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column; /* Column by default on mobile */
-    gap: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  @media (min-width: 768px) {
-    .player-toolbar {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1.5rem;
-    }
-  }
-
-  .toolbar-left {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  @media (min-width: 480px) {
-    .toolbar-left {
-      flex-direction: row;
-      align-items: center;
-      gap: 1.5rem;
-    }
-  }
-
-  .lang-selector {
-    display: flex;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 4px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    width: fit-content;
-  }
-  .lang-btn {
-    background: transparent;
-    border: none;
-    color: #64748b;
-    padding: 6px 16px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    cursor: pointer;
-    border-radius: 7px;
-    transition: 0.2s;
-  }
-  .lang-btn.active {
-    background: var(--color-primary);
-    color: white;
-  }
-
-  .server-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-  .server-selector::-webkit-scrollbar {
+  .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-
-  .toolbar-label {
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: #475569;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .server-chips {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .chip {
-    background: #1e293b;
-    color: #94a3b8;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-    white-space: nowrap;
-  }
-  .chip.active {
-    background: rgba(59, 130, 246, 0.2);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-  }
-
-  .action-btn {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%; /* Full width on mobile */
-  }
-
-  @media (min-width: 768px) {
-    .action-btn {
-      width: auto;
-    }
-  }
-
-  /* CONTENT */
-  .stream-content {
-    padding-top: 2rem;
-    padding-bottom: 5rem;
-  }
-  .stream-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  @media (min-width: 1024px) {
-    .stream-layout {
-      grid-template-columns: 1fr 340px;
-      gap: 3rem;
-    }
-  }
-
-  .anime-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-    line-height: 1.2;
-  }
-
-  @media (min-width: 768px) {
-    .anime-title {
-      font-size: 2.25rem;
-    }
-  }
-
-  .badges {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-  }
-  .badge {
-    padding: 4px 10px;
-    background: #1e293b;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #cbd5e1;
-  }
-  .score {
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.25rem;
-  }
-  .section-title {
-    font-size: 1rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .progress-badge {
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    font-weight: 600;
-  }
-
-  .ep-selector-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
-    gap: 8px;
-    margin-bottom: 2.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .ep-selector-grid {
-      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-      gap: 10px;
-    }
-  }
-
-  .ep-chip {
-    aspect-ratio: 1;
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    color: white;
-    border-radius: 8px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-  }
-  .ep-chip:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-  }
-  .ep-chip.active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  }
-  .ep-chip.watched {
-    border-color: rgba(59, 130, 246, 0.3);
-    color: #94a3b8;
-  }
-  .ep-chip.watched:not(.active) {
-    background: rgba(30, 41, 59, 0.6);
-  }
-
-  .description {
-    color: #94a3b8;
-    line-height: 1.6;
-    font-size: 0.95rem;
-    margin-bottom: 2.5rem;
-  }
-  .error-box {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    padding: 1.25rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 0.9rem;
-  }
-
-  .seasons-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .season-link {
-    display: flex;
-    gap: 1rem;
-    text-decoration: none;
-    background: #0f172a;
-    padding: 0.75rem;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    transition: 0.2s;
-  }
-  .season-link:hover {
-    border-color: var(--color-primary);
-    background: #1e293b;
-  }
-  .season-link img {
-    width: 50px;
-    height: 75px;
-    object-fit: cover;
-    border-radius: 6px;
-  }
-  .rel-tag {
-    font-size: 0.6rem;
-    color: var(--color-primary);
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-    display: block;
-  }
-  .rel-name {
-    font-size: 0.9rem;
-    color: white;
-    font-weight: 600;
-    line-height: 1.3;
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 </style>

@@ -16,82 +16,202 @@ export const prerender = true;
 ---
 
 <Layout title="Profil">
-  <div id="not-logged-in" class="container section hidden">
-    <div class="empty-state">
-      <div class="empty-icon"><User size={48} /></div>
-      <h2>Non connecté</h2>
-      <p>Connectez-vous pour voir votre profil et vos statistiques.</p>
-      <div class="empty-actions">
-        <a href="/login" class="btn btn-primary">Se connecter</a>
-        <a href="/register" class="btn btn-outline">Créer un compte</a>
+  <!-- Not Logged In State -->
+  <div
+    id="not-logged-in"
+    class="hidden min-h-[70vh] flex flex-col items-center justify-center p-4"
+  >
+    <div class="text-center space-y-6 max-w-sm">
+      <div
+        class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full"
+      >
+        <User size={48} />
+      </div>
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">
+        Non connecté
+      </h2>
+      <p class="text-gray-500 dark:text-gray-400">
+        Rejoignez Yvlos dès maintenant pour sauvegarder votre progression et vos
+        favoris.
+      </p>
+      <div class="flex flex-col gap-3">
+        <a
+          href="/login"
+          class="px-6 py-3 text-white bg-blue-700 hover:bg-blue-800 font-bold rounded-xl transition-colors"
+          >Se connecter</a
+        >
+        <a
+          href="/register"
+          class="px-6 py-3 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 font-bold rounded-xl transition-colors"
+          >Créer un compte</a
+        >
       </div>
     </div>
   </div>
 
-  <div id="profile-content" class="container section hidden">
-    <!-- Header -->
-    <div class="profile-header">
-      <div class="profile-info-main">
-        <div class="avatar-container">
-          <img id="user-avatar" src="" alt="Avatar" />
+  <!-- Profile Content -->
+  <div
+    id="profile-content"
+    class="hidden max-w-screen-xl mx-auto px-4 py-12 space-y-12 pb-24"
+  >
+    <!-- Profile Header -->
+    <div
+      class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm"
+    >
+      <div class="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+        <div class="relative group">
+          <img
+            id="user-avatar"
+            src=""
+            alt="Avatar"
+            class="w-32 h-32 md:w-40 md:h-40 rounded-3xl object-cover border-4 border-blue-600/20 shadow-xl"
+          />
           <button
-            class="edit-avatar"
-            title="Changer d'avatar"
+            class="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2.5 rounded-xl shadow-lg hover:scale-110 transition-transform"
             onclick="alert('Bientôt disponible !')"
           >
-            <Camera size={16} />
+            <Camera size={18} />
           </button>
         </div>
-        <div class="user-meta">
-          <div class="user-badges">
-            <span class="badge premium">Membre Vylos</span>
-          </div>
-          <h1 id="user-name">Utilisateur</h1>
-          <p class="user-status">Prêt pour l'aventure</p>
+        <div class="text-center md:text-left space-y-2">
+          <span
+            class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 text-xs font-bold rounded-lg mb-2"
+            >Membre Premium</span
+          >
+          <h1
+            id="user-name"
+            class="text-4xl font-black text-gray-900 dark:text-white tracking-tight"
+          >
+            Utilisateur
+          </h1>
+          <p
+            id="user-email"
+            class="text-gray-500 dark:text-gray-400 font-medium italic"
+          >
+            utilisateur@yvlos.fr
+          </p>
         </div>
       </div>
-      <div class="profile-actions-top">
-        <button id="logout-btn" class="btn btn-danger">
-          <LogOut size={20} />
-          Déconnexion
-        </button>
-      </div>
+      <button
+        id="logout-btn"
+        class="flex items-center gap-2 px-6 py-3 text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 font-bold rounded-xl md:self-start transition-colors"
+      >
+        <LogOut size={20} />
+        Déconnexion
+      </button>
     </div>
 
     <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <BarChart3 class="stat-icon" size={24} />
-        <div class="stat-value" id="stat-time">0h</div>
-        <div class="stat-label">Déjà regardé</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex items-center gap-5 shadow-sm"
+      >
+        <div
+          class="p-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 rounded-2xl"
+        >
+          <BarChart3 size={32} />
+        </div>
+        <div>
+          <p
+            id="stat-time"
+            class="text-2xl font-black text-gray-900 dark:text-white"
+          >
+            0h
+          </p>
+          <p
+            class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            Temps de visionnage
+          </p>
+        </div>
       </div>
-      <div class="stat-card">
-        <Play class="stat-icon icon-play" size={24} />
-        <div class="stat-value" id="stat-episodes">0</div>
-        <div class="stat-label">Épisodes vus</div>
+      <div
+        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex items-center gap-5 shadow-sm"
+      >
+        <div
+          class="p-4 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-500 rounded-2xl"
+        >
+          <Play size={32} />
+        </div>
+        <div>
+          <p
+            id="stat-episodes"
+            class="text-2xl font-black text-gray-900 dark:text-white"
+          >
+            0
+          </p>
+          <p
+            class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            Épisodes vus
+          </p>
+        </div>
       </div>
-      <div class="stat-card">
-        <Clock class="stat-icon icon-clock" size={24} />
-        <div class="stat-value" id="stat-completed">0</div>
-        <div class="stat-label">Séries finies</div>
+      <div
+        class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex items-center gap-5 shadow-sm"
+      >
+        <div
+          class="p-4 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 rounded-2xl"
+        >
+          <Clock size={32} />
+        </div>
+        <div>
+          <p
+            id="stat-completed"
+            class="text-2xl font-black text-gray-900 dark:text-white"
+          >
+            0
+          </p>
+          <p
+            class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+          >
+            Séries terminées
+          </p>
+        </div>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="profile-tabs">
-      <button class="tab-btn active" data-tab="history">Mon Historique</button>
-      <button class="tab-btn" data-tab="favorites">Mes Favoris</button>
-    </div>
-
-    <div class="tab-content" id="tab-history">
-      <div id="history-list" class="results-grid">
-        <!-- History cards -->
+    <!-- Content Tabs -->
+    <div class="space-y-6">
+      <div class="border-b border-gray-200 dark:border-gray-800">
+        <ul
+          class="flex flex-wrap -mb-px text-sm font-bold text-center text-gray-500 dark:text-gray-400"
+        >
+          <li class="me-2">
+            <button
+              class="tab-btn inline-block p-4 border-b-2 rounded-t-lg transition-all"
+              data-tab="history">Mon Historique</button
+            >
+          </li>
+          <li class="me-2">
+            <button
+              class="tab-btn inline-block p-4 border-b-2 rounded-t-lg transition-all border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+              data-tab="favorites">Mes Favoris</button
+            >
+          </li>
+        </ul>
       </div>
-    </div>
 
-    <div class="tab-content hidden" id="tab-favorites">
-      <div id="favorites-list" class="results-grid">
-        <!-- Favorite cards -->
+      <!-- Tab Content -->
+      <div id="tab-history" class="tab-content transition-opacity duration-300">
+        <div
+          id="history-list"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+        >
+          <!-- Data injection -->
+        </div>
+      </div>
+
+      <div
+        id="tab-favorites"
+        class="tab-content hidden transition-opacity duration-300"
+      >
+        <div
+          id="favorites-list"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+        >
+          <!-- Data injection -->
+        </div>
       </div>
     </div>
   </div>
@@ -99,7 +219,7 @@ export const prerender = true;
 
 <script>
   function initProfile() {
-    const sessionStr = localStorage.getItem("vylos_session");
+    const sessionStr = localStorage.getItem("yvlos_session");
     if (!sessionStr) {
       document.getElementById("not-logged-in")?.classList.remove("hidden");
       return;
@@ -108,292 +228,136 @@ export const prerender = true;
     const user = JSON.parse(sessionStr);
     document.getElementById("profile-content")?.classList.remove("hidden");
 
-    // Populate user info
-    (document.getElementById("user-avatar") as HTMLImageElement).src =
-      user.avatar;
-    document.getElementById("user-name")!.textContent = user.username;
+    // Profile info
+    const avatarEl = document.getElementById("user-avatar") as HTMLImageElement;
+    if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+
+    const nameEl = document.getElementById("user-name");
+    if (nameEl) nameEl.textContent = user.username;
+
+    const emailEl = document.getElementById("user-email");
+    if (emailEl) emailEl.textContent = user.email || "";
 
     // Stats
     const eps = user.stats?.episodesSeen || 0;
-    document.getElementById("stat-time")!.textContent =
-      `${Math.floor((eps * 24) / 60)}h`;
-    document.getElementById("stat-episodes")!.textContent = eps.toString();
-    document.getElementById("stat-completed")!.textContent = (
-      user.stats?.completed || 0
-    ).toString();
+    const timeEl = document.getElementById("stat-time");
+    if (timeEl) timeEl.textContent = `${Math.floor((eps * 24) / 60)}h`;
 
-    // History & Favorites
+    const epEl = document.getElementById("stat-episodes");
+    if (epEl) epEl.textContent = eps.toString();
+
+    const compEl = document.getElementById("stat-completed");
+    if (compEl) compEl.textContent = (user.stats?.completed || 0).toString();
+
     renderHistory();
     renderFavorites();
 
     // Tab Logic
     const tabs = document.querySelectorAll(".tab-btn");
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        const tabName = tab.getAttribute("data-tab");
-        tabs.forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
+    const SET_ACTIVE =
+      "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500";
+    const SET_INACTIVE =
+      "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300";
 
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((c) => c.classList.add("hidden"));
-        document.getElementById(`tab-${tabName}`)?.classList.remove("hidden");
+    function updateTabs(activeId: string) {
+      tabs.forEach((tab) => {
+        const isTabActive = tab.getAttribute("data-tab") === activeId;
+        tab.className = `tab-btn inline-block p-4 border-b-2 rounded-t-lg transition-all ${isTabActive ? SET_ACTIVE : SET_INACTIVE}`;
+
+        const content = document.getElementById(
+          `tab-${tab.getAttribute("data-tab")}`,
+        );
+        if (content) {
+          if (isTabActive) content.classList.remove("hidden");
+          else content.classList.add("hidden");
+        }
       });
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () =>
+        updateTabs(tab.getAttribute("data-tab") || "history"),
+      );
     });
+
+    // Default tab
+    updateTabs("history");
 
     // Logout
     document.getElementById("logout-btn")?.addEventListener("click", () => {
-      localStorage.removeItem("vylos_session");
-      window.location.href = "/";
+      localStorage.removeItem("yvlos_session");
+      window.location.href = "/login";
     });
   }
 
   function renderHistory() {
-    const historyList = document.getElementById("history-list");
-    const history = JSON.parse(
-      localStorage.getItem("vylos_global_history") || "[]"
+    const list = document.getElementById("history-list");
+    const data = JSON.parse(
+      localStorage.getItem("yvlos_global_history") || "[]",
     );
 
-    if (history.length === 0) {
-      if (historyList)
-        historyList.innerHTML =
-          '<div class="empty-tab-msg"><p>Ton historique est vide.</p></div>';
+    if (!list) return;
+
+    if (data.length === 0) {
+      list.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-medium">Ton historique est vide. Commence à regarder quelque chose !</div>`;
       return;
     }
 
-    if (historyList) {
-      historyList.innerHTML = history
-        .map(
-          (anime: any) => `
-        <a href="/anime/${anime.id}?ep=${anime.lastEp || 1}" class="card-link">
-          <div class="anime-card">
-            <div class="cover-wrapper">
-              <img src="${anime.image}" alt="${anime.title}" />
-              <div class="progress-bar-container">
-                 <div class="progress-bar-fill" style="width: 100%"></div>
-              </div>
-              <div class="ep-tag">Ép. ${anime.lastEp}</div>
+    list.innerHTML = data
+      .map(
+        (a: any) => `
+        <a href="/anime/${a.id}?ep=${a.lastEp || 1}" class="group">
+            <div class="relative overflow-hidden rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition-all group-hover:shadow-lg">
+                <div class="aspect-[2/3] w-full relative">
+                    <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 w-full h-1.5 bg-gray-200 dark:bg-gray-800">
+                        <div class="h-full bg-blue-600" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <h3 class="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">${a.title}</h3>
+                    <p class="text-[10px] text-gray-500 uppercase mt-1">ÉPISODE ${a.lastEp}</p>
+                </div>
             </div>
-            <div class="info">
-              <h3 class="title">${anime.title}</h3>
-              <p class="type">${anime.type || "Anime"}</p>
-            </div>
-          </div>
         </a>
-      `
-        )
-        .join("");
-    }
+    `,
+      )
+      .join("");
   }
 
   function renderFavorites() {
-    const favoritesList = document.getElementById("favorites-list");
-    const favorites = JSON.parse(
-      localStorage.getItem("vylos_favorites") || "[]"
-    );
+    const list = document.getElementById("favorites-list");
+    const data = JSON.parse(localStorage.getItem("yvlos_favorites") || "[]");
 
-    if (favorites.length === 0) {
-      if (favoritesList)
-        favoritesList.innerHTML =
-          '<div class="empty-tab-msg"><p>Tu n\'as pas encore de favoris.</p></div>';
+    if (!list) return;
+
+    if (data.length === 0) {
+      list.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-medium">Tes favoris s'afficheront ici.</div>`;
       return;
     }
 
-    if (favoritesList) {
-      favoritesList.innerHTML = favorites
-        .map(
-          (anime: any) => `
-        <a href="/anime/${anime.id}" class="card-link">
-          <div class="anime-card">
-            <div class="cover-wrapper">
-               <img src="${anime.image}" alt="${anime.title}" />
-               <div class="rating">★ Fav</div>
+    list.innerHTML = data
+      .map(
+        (a: any) => `
+        <a href="/anime/${a.id}" class="group">
+            <div class="relative overflow-hidden rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition-all group-hover:shadow-lg">
+                <div class="aspect-[2/3] w-full relative">
+                    <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover">
+                    <div class="absolute top-2 right-2 p-1.5 bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-500 rounded-lg backdrop-blur">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <h3 class="text-xs font-bold text-gray-900 dark:text-white line-clamp-2">${a.title}</h3>
+                    <p class="text-[10px] text-gray-500 uppercase mt-1">${a.type || "Anime"}</p>
+                </div>
             </div>
-            <div class="info">
-              <h3 class="title">${anime.title}</h3>
-              <p class="type">${anime.type || "Anime"}</p>
-            </div>
-          </div>
         </a>
-      `
-        )
-        .join("");
-    }
+    `,
+      )
+      .join("");
   }
 
+  // Run on mount
   initProfile();
 </script>
-
-<style>
-  .profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    padding: 2.5rem;
-    background: rgba(15, 23, 42, 0.4);
-    border-radius: 32px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  @media (max-width: 768px) {
-    .profile-header {
-      flex-direction: column;
-      text-align: center;
-    }
-  }
-
-  .profile-info-main {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-  }
-  @media (max-width: 640px) {
-    .profile-info-main {
-      flex-direction: column;
-    }
-  }
-
-  .avatar-container {
-    position: relative;
-    width: 140px;
-    height: 140px;
-  }
-  .avatar-container img {
-    width: 100%;
-    height: 100%;
-    border-radius: 40px;
-    object-fit: cover;
-    border: 4px solid var(--color-primary);
-    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
-  }
-
-  .edit-avatar {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
-    background: var(--color-primary);
-    border: 4px solid #020617;
-    color: white;
-    width: 44px;
-    height: 44px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .user-meta h1 {
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin: 0.5rem 0;
-    letter-spacing: -1px;
-  }
-  .user-status {
-    color: var(--color-text-muted);
-    font-size: 1rem;
-  }
-
-  .badge.premium {
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-    color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 800;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 4rem;
-  }
-  .stat-card {
-    background: rgba(30, 41, 59, 0.3);
-    padding: 2.5rem;
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.02);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .stat-value {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: white;
-  }
-  .stat-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .profile-tabs {
-    display: flex;
-    gap: 2rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 3rem;
-  }
-  .tab-btn {
-    background: none;
-    border: none;
-    color: var(--color-text-muted);
-    font-size: 1.1rem;
-    font-weight: 800;
-    padding: 1.5rem 0;
-    cursor: pointer;
-    position: relative;
-  }
-  .tab-btn.active {
-    color: white;
-  }
-  .tab-btn.active::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--color-primary);
-  }
-
-  .empty-tab-msg {
-    grid-column: 1/-1;
-    padding: 6rem;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 24px;
-    color: var(--color-text-muted);
-  }
-
-  .btn-danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.1);
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-  @media (min-width: 640px) {
-    .results-grid {
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 2rem;
-    }
-  }
-</style>

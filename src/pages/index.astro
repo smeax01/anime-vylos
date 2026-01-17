@@ -9,11 +9,18 @@ import {
   getAnimeListByIds,
 } from "../lib/anilist";
 import libraryData from "../data/library.json";
-import { Star, History, Zap, Clock } from "lucide-astro";
+import {
+  Star,
+  History,
+  Zap,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Library,
+} from "lucide-astro";
 
 export const prerender = false;
 
-// Fetch Data Server-Side
 let popular: any[] = [];
 let simulcasts: any[] = [];
 let latest: any[] = [];
@@ -28,7 +35,6 @@ try {
     getAnimeListByIds(libraryIds),
   ]);
 
-  // Relaxed filtering + STRICT NSFW Filter
   const clean = (list: any[]) =>
     list.filter(
       (a) =>
@@ -37,11 +43,16 @@ try {
         a.coverImage?.large &&
         !a.isAdult &&
         !a.genres?.some((g: string) =>
-          ["Hentai", "Ecchi", "Erotica", "Yaoi", "Yuri"].includes(g)
-        )
+          ["Hentai", "Ecchi", "Erotica", "Yaoi", "Yuri"].includes(g),
+        ),
     );
 
-  popular = clean(libData); // Use library data for "La Librairie Vylos"
+  // Map custom tags from libraryData
+  popular = clean(libData).map((a) => {
+    const libEntry = libraryData.featured.find((f) => f.id === a.id);
+    return { ...a, tag: libEntry?.tag };
+  });
+
   simulcasts = clean(simData);
   latest = clean(latData);
 } catch (e) {
@@ -49,14 +60,13 @@ try {
   error = "Une erreur est survenue lors de la récupération des données.";
 }
 
-// Select Hero Item (prioritize one with a banner image)
 const heroAnime =
   popular.find((a) => a.bannerImage && a.description) || popular[0];
 const heroProps = heroAnime
   ? {
       id: heroAnime.id,
       title: heroAnime.title.romaji || heroAnime.title.english,
-      description: heroAnime.description || "Découvrez cet anime sur Vylos.",
+      description: heroAnime.description || "Découvrez cet anime sur Yvlos.",
       image:
         heroAnime.bannerImage ||
         heroAnime.coverImage.extraLarge ||
@@ -73,218 +83,231 @@ const heroProps = heroAnime
     heroProps ? (
       <Hero {...heroProps} />
     ) : (
-      <div class="error-banner">
+      <div class="flex items-center justify-center h-[40vh] text-red-500 font-bold">
         <p>{error || "Chargement..."}</p>
       </div>
     )
   }
 
-  <div class="content-wrapper">
-    <!-- History Section -->
-    <section id="history-section" class="container section hidden">
-      <div class="section-header">
-        <h2 class="section-title">
-          <History class="icon-history" size={24} />
-          Reprendre la lecture
+  <div
+    class="max-w-screen-xl mx-auto px-4 -mt-10 md:-mt-24 relative z-20 space-y-16 pb-20"
+  >
+    <!-- Reprendre la lecture -->
+    <section id="history-section" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
+        >
+          <History class="text-blue-500" size={28} />
+          Reprendre
         </h2>
-        <div class="scroll-controls">
-          <button class="scroll-btn prev" data-target="continue-watching-list">
-            <span class="sr-only">Précédent</span>
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m15 18-6-6 6-6"></path></svg
-            >
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="history-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
           </button>
-          <button class="scroll-btn next" data-target="continue-watching-list">
-            <span class="sr-only">Suivant</span>
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m9 18 6-6-6-6"></path></svg
-            >
-          </button>
-        </div>
-        <div class="scroll-actions">
-          <button class="scroll-btn prev" data-target="history-list">
-            <Star size={20} class="rotate-180" />
-          </button>
-          <button class="scroll-btn next" data-target="history-list">
-            <Star size={20} />
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="history-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
-      <div class="horizontal-scroll" id="history-list">
-        <!-- Injected via script -->
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-6 scrollbar-hide scroll-smooth snap-x"
+        id="history-list"
+      >
+        <!-- JS Injection -->
       </div>
     </section>
 
     <!-- Simulcasts -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Zap size={24} />
-          Simulcasts de la saison
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
+        >
+          <Zap class="text-yellow-400" size={28} />
+          Simulcasts
         </h2>
-        <div class="scroll-actions">
-          <button class="scroll-btn prev" data-target="simulcasts-scroll">
-            <Star size={20} class="rotate-180" />
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="simulcasts-scroll"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
           </button>
-          <button class="scroll-btn next" data-target="simulcasts-scroll">
-            <Star size={20} />
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="simulcasts-scroll"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
-      <div class="horizontal-scroll" id="simulcasts-scroll">
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-6 scrollbar-hide scroll-smooth snap-x"
+        id="simulcasts-scroll"
+      >
         {
           simulcasts.map((anime) => (
-            <a href={`/anime/${anime.id}`} class="card-link">
+            <div class="flex-none w-40 md:w-56 snap-start">
               <AnimeCard
+                id={anime.id}
                 image={anime.coverImage.large}
                 title={anime.title.romaji || anime.title.english}
                 type={anime.format}
-                rating={anime.averageScore ? anime.averageScore / 10 : 0}
+                rating={anime.averageScore}
               />
-            </a>
+            </div>
           ))
         }
       </div>
     </section>
 
-    <!-- Mes Favoris (Dynamic) -->
-    <div id="favorites-section" class="section hidden">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Star size={24} />
-          Mes coups de cœur
+    <!-- Favorites (Dynamic) -->
+    <div id="favorites-section" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
+        >
+          <Star class="text-pink-500" size={28} />
+          Coups de cœur
         </h2>
-        <div class="scroll-actions">
-          <button class="scroll-btn prev" data-target="favorites-list">
-            <Star size={20} class="rotate-180" />
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="favorites-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
           </button>
-          <button class="scroll-btn next" data-target="favorites-list">
-            <Star size={20} />
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="favorites-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
-      <div class="horizontal-scroll" id="favorites-list">
-        <!-- Injected via script -->
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-6 scrollbar-hide scroll-smooth snap-x"
+        id="favorites-list"
+      >
+        <!-- JS Injection -->
       </div>
     </div>
 
-    <!-- Latest Added -->
-    <section class="container section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Clock class="icon-latest" size={24} />
+    <!-- Dernières Sorties -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
+        >
+          <Clock class="text-green-500" size={28} />
           Dernières Sorties
         </h2>
-        <div class="scroll-controls">
-          <button class="scroll-btn prev" data-target="latest-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m15 18-6-6 6-6"></path></svg
-            >
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="latest-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
           </button>
-          <button class="scroll-btn next" data-target="latest-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m9 18 6-6-6-6"></path></svg
-            >
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="latest-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
-      <div id="latest-list" class="horizontal-scroll">
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-6 scrollbar-hide scroll-smooth snap-x"
+        id="latest-list"
+      >
         {
           latest.map((anime) => (
-            <a href={`/anime/${anime.id}`} class="card-link">
+            <div class="flex-none w-40 md:w-56 snap-start">
               <AnimeCard
+                id={anime.id}
                 image={anime.coverImage.large}
                 title={anime.title.romaji || anime.title.english}
-                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
-                rating={
-                  anime.averageScore ? anime.averageScore / 10 : undefined
-                }
+                type={`${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}`}
+                rating={anime.averageScore}
               />
-            </a>
+            </div>
           ))
         }
       </div>
     </section>
 
-    <!-- Popular Section -->
-    <section class="container section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Star class="icon-star" size={24} />
-          La Librairie Vylos
+    <!-- La Librairie -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2
+          class="text-xl md:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight"
+        >
+          <Library class="text-blue-600" size={28} />
+          La Librairie
         </h2>
-        <div class="scroll-controls">
-          <button class="scroll-btn prev" data-target="popular-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m15 18-6-6 6-6"></path></svg
-            >
+        <div class="flex gap-2">
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="popular-list"
+            data-dir="prev"
+          >
+            <ChevronLeft size={20} />
           </button>
-          <button class="scroll-btn next" data-target="popular-list">
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              stroke-width="2"
-              fill="none"><path d="m9 18 6-6-6-6"></path></svg
-            >
+          <button
+            class="scroll-btn p-2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+            data-target="popular-list"
+            data-dir="next"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
       </div>
-      <div id="popular-list" class="horizontal-scroll">
+      <div
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-6 scrollbar-hide scroll-smooth snap-x"
+        id="popular-list"
+      >
         {
           popular.map((anime) => (
-            <a href={`/anime/${anime.id}`} class="card-link">
+            <div class="flex-none w-40 md:w-56 snap-start">
               <AnimeCard
+                id={anime.id}
                 image={anime.coverImage.large}
                 title={anime.title.romaji || anime.title.english}
-                type={`${anime.format || "TV"} • ${anime.genres[0] || "Anime"}`}
-                rating={
-                  anime.averageScore ? anime.averageScore / 10 : undefined
-                }
+                type={`${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}`}
+                tag={anime.tag}
+                rating={anime.averageScore}
               />
-            </a>
+            </div>
           ))
         }
       </div>
     </section>
   </div>
-
-  <div class="spacer"></div>
 </Layout>
 
 <script>
   function setupDynamicSections() {
-    // 1. History
+    // History
     const historyList = document.getElementById("history-list");
     const historySection = document.getElementById("history-section");
     const history = JSON.parse(
-      localStorage.getItem("vylos_global_history") || "[]"
+      localStorage.getItem("yvlos_global_history") || "[]",
     );
 
     if (history.length > 0 && historyList && historySection) {
@@ -292,31 +315,33 @@ const heroProps = heroAnime
       historyList.innerHTML = history
         .map(
           (a: any) => `
-        <a href="/anime/${a.id}?ep=${a.lastEp || 1}" class="card-link">
-          <div class="anime-card">
-            <div class="cover-wrapper">
-              <img src="${a.image}" alt="${a.title}" loading="lazy" />
-              <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width: 100%"></div>
-              </div>
-              <div class="ep-tag">Ép. ${a.lastEp}</div>
-            </div>
-            <div class="info">
-              <h3 class="title">${a.title}</h3>
-              <p class="type">${a.type || "Anime"}</p>
-            </div>
-          </div>
-        </a>
-      `
+        <div class="flex-none w-40 md:w-56 snap-start h-full">
+            <a href="/anime/${a.id}?ep=${a.lastEp || 1}" class="group block h-full">
+                <div class="flex flex-col h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl group-hover:-translate-y-1">
+                    <div class="aspect-[2/3] w-full relative overflow-hidden">
+                        <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-700/50">
+                            <div class="h-full bg-blue-600" style="width: 100%"></div>
+                        </div>
+                        <div class="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">ÉP. ${a.lastEp}</div>
+                    </div>
+                    <div class="p-3 flex flex-col flex-1 gap-1">
+                        <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 min-h-[2.5rem] leading-tight group-hover:text-blue-500">${a.title}</h3>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-auto">${a.type || "Anime"}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+      `,
         )
         .join("");
     }
 
-    // 2. Favorites
+    // Favorites
     const favList = document.getElementById("favorites-list");
     const favSection = document.getElementById("favorites-section");
     const favorites = JSON.parse(
-      localStorage.getItem("vylos_favorites") || "[]"
+      localStorage.getItem("yvlos_favorites") || "[]",
     );
 
     if (favorites.length > 0 && favList && favSection) {
@@ -324,19 +349,21 @@ const heroProps = heroAnime
       favList.innerHTML = favorites
         .map(
           (a: any) => `
-        <a href="/anime/${a.id}" class="card-link">
-          <div class="anime-card">
-            <div class="cover-wrapper">
-              <img src="${a.image}" alt="${a.title}" loading="lazy" />
-              <div class="rating">★ Fav</div>
-            </div>
-            <div class="info">
-              <h3 class="title">${a.title}</h3>
-              <p class="type">${a.type || "Anime"}</p>
-            </div>
-          </div>
-        </a>
-      `
+        <div class="flex-none w-40 md:w-56 snap-start h-full">
+            <a href="/anime/${a.id}" class="group block h-full">
+                <div class="flex flex-col h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl group-hover:-translate-y-1">
+                    <div class="aspect-[2/3] w-full relative overflow-hidden">
+                        <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div class="absolute top-2 right-2 bg-pink-600 text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">FAV</div>
+                    </div>
+                    <div class="p-3 flex flex-col flex-1 gap-1">
+                        <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 min-h-[2.5rem] leading-tight group-hover:text-blue-500">${a.title}</h3>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-auto">${a.type || "Anime"}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+      `,
         )
         .join("");
     }
@@ -347,176 +374,32 @@ const heroProps = heroAnime
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const targetId = btn.getAttribute("data-target");
-        if (!targetId) return;
+        const dir = btn.getAttribute("data-dir");
+        if (!targetId || !dir) return;
+
         const list = document.getElementById(targetId);
         if (list) {
-          const card = list.querySelector(".card-link");
-          const scrollAmount = card
-            ? (card.clientWidth + 20) * 2
-            : list.clientWidth * 0.8;
-          if (btn.classList.contains("next")) {
-            list.scrollBy({ left: scrollAmount, behavior: "smooth" });
-          } else {
-            list.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-          }
+          const scrollAmount = list.clientWidth * 0.8;
+          list.scrollBy({
+            left: dir === "next" ? scrollAmount : -scrollAmount,
+            behavior: "smooth",
+          });
         }
       });
     });
   }
 
-  renderHistory();
+  // Init
+  setupDynamicSections();
   setupScrollButtons();
 </script>
 
 <style>
-  .hidden {
-    display: none !important;
-  }
-
-  .content-wrapper {
-    position: relative;
-    z-index: 20;
-    margin-top: -2rem;
-    padding-bottom: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-  }
-
-  @media (min-width: 768px) {
-    .content-wrapper {
-      margin-top: -5rem;
-      gap: 5rem;
-    }
-  }
-
-  .section {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  @media (min-width: 1200px) {
-    .section {
-      padding: 0;
-    }
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .section-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin-bottom: 0;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
-  }
-
-  .scroll-controls {
+  .scrollbar-hide::-webkit-scrollbar {
     display: none;
-    gap: 0.5rem;
   }
-
-  @media (min-width: 768px) {
-    .scroll-controls {
-      display: flex;
-    }
-    .section-title {
-      font-size: 1.75rem;
-      text-transform: none;
-    }
-  }
-
-  .scroll-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .scroll-btn:hover {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    transform: scale(1.1);
-  }
-
-  .scroll-btn:active {
-    transform: scale(0.9);
-  }
-
-  .icon-star {
-    color: #eab308;
-  }
-  .icon-history {
-    color: var(--color-primary);
-  }
-  .icon-zap {
-    color: #8b5cf6;
-  }
-  .icon-latest {
-    color: #10b981;
-  }
-
-  .horizontal-scroll {
-    display: flex;
-    gap: 1.25rem;
-    overflow-x: auto;
-    padding-bottom: 1.5rem;
+  .scrollbar-hide {
+    -ms-overflow-style: none;
     scrollbar-width: none;
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  @media (min-width: 1200px) {
-    .horizontal-scroll {
-      margin: 0;
-      padding: 0 0 1.5rem 0;
-      gap: 1.75rem;
-    }
-  }
-
-  .horizontal-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .card-link {
-    text-decoration: none;
-    display: block;
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-
-  .card-link:active {
-    transform: scale(0.95);
-  }
-
-  .spacer {
-    height: 100px;
-  }
-
-  .error-banner {
-    height: 40vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #f87171;
-    font-weight: 600;
   }
 </style>

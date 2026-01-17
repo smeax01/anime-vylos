@@ -1,5 +1,5 @@
 {
-  "name": "afraid-asteroid",
+  "name": "yvlos",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -11,10 +11,14 @@
   "dependencies": {
     "@astrojs/node": "^9.5.1",
     "@astrojs/vercel": "^9.0.2",
+    "@tailwindcss/vite": "^4.1.18",
     "@vercel/postgres": "^0.10.0",
     "astro": "^5.16.6",
+    "flowbite": "^4.0.1",
+    "flowbite-datepicker": "^2.0.0",
     "hls.js": "^1.6.15",
     "lucide-astro": "^0.556.0",
-    "plyr": "^3.8.3"
+    "plyr": "^3.8.3",
+    "tailwindcss": "^4.1.18"
   }
 }

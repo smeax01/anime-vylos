@@ -1,37 +1,69 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Heart, Search } from "lucide-astro";
+import { Heart, Search, ArrowRight } from "lucide-astro";
 
 export const prerender = true;
 ---
 
 <Layout title="Mes Favoris">
-  <div class="container section">
-    <div class="page-header">
-      <h1 class="page-title">
-        <Heart class="icon-heart" size={32} />
+  <div class="max-w-screen-xl mx-auto px-4 py-12 md:py-20 space-y-12">
+    <!-- Header -->
+    <div class="space-y-4">
+      <h1
+        class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight"
+      >
+        <Heart class="text-pink-600" size={40} fill="currentColor" />
         Mes Favoris
       </h1>
-      <p class="page-desc">
-        Retrouvez tous les animés que vous avez ajoutés à votre bibliothèque.
+      <p class="text-lg text-gray-500 dark:text-gray-400 font-medium max-w-2xl">
+        Retrouvez ici tous les animés que vous avez marqués d'un cœur. Votre
+        playlist personnelle sur Yvlos.
       </p>
     </div>
 
-    <div id="favorites-grid" class="results-grid">
+    <!-- Layout Grid -->
+    <div
+      id="favorites-grid"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+    >
       <!-- Injected by JS -->
-      <div id="loading" class="loading-placeholder">Chargement...</div>
+      <div id="loading" class="col-span-full py-20 text-center">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"
+        >
+        </div>
+      </div>
     </div>
 
-    <div id="empty-favorites" class="empty-state hidden">
-      <div class="icon-bg">
+    <!-- Empty State -->
+    <div
+      id="empty-favorites"
+      class="hidden py-24 text-center max-w-md mx-auto space-y-8"
+    >
+      <div
+        class="inline-flex items-center justify-center w-24 h-24 bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-500 rounded-3xl"
+      >
         <Heart size={48} />
       </div>
-      <h2>Aucun favori pour le moment</h2>
-      <p>
-        Parcourez le catalogue et cliquez sur le coeur pour ajouter des animés
-        ici.
-      </p>
-      <a href="/search" class="btn btn-primary">Explorer le catalogue</a>
+      <div class="space-y-2">
+        <h2 class="text-2xl font-black text-gray-900 dark:text-white">
+          Votre liste est vide
+        </h2>
+        <p class="text-gray-500 dark:text-gray-400 font-medium">
+          Parcourez le catalogue et ajoutez vos coups de cœur pour les retrouver
+          facilement.
+        </p>
+      </div>
+      <a
+        href="/search"
+        class="inline-flex items-center justify-center px-6 py-4 text-white bg-blue-700 hover:bg-blue-800 font-black rounded-2xl transition-all gap-2 group shadow-lg shadow-blue-700/20"
+      >
+        Explorer le catalogue
+        <ArrowRight
+          size={20}
+          class="transition-transform group-hover:translate-x-1"
+        />
+      </a>
     </div>
   </div>
 </Layout>
@@ -42,9 +74,8 @@ export const prerender = true;
     const emptyState = document.getElementById("empty-favorites");
     const loading = document.getElementById("loading");
 
-    // In Vylos system, favorites are objects withid, title, image, type
     const favorites = JSON.parse(
-      localStorage.getItem("vylos_favorites") || "[]"
+      localStorage.getItem("yvlos_favorites") || "[]",
     );
 
     if (loading) loading.classList.add("hidden");
@@ -60,18 +91,21 @@ export const prerender = true;
       grid.innerHTML = favorites
         .map(
           (anime: any) => `
-        <a href="/anime/${anime.id}" class="card-link">
-          <div class="anime-card">
-            <div class="cover-wrapper">
-              <img src="${anime.image}" alt="${anime.title}" loading="lazy" />
+        <a href="/anime/${anime.id}" class="group">
+            <div class="relative overflow-hidden rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-xl group-hover:border-blue-500/50">
+                <div class="aspect-[2/3] w-full relative">
+                    <img src="${anime.image}" alt="${anime.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div class="absolute top-2 right-2 p-1.5 bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-500 rounded-lg backdrop-blur shadow-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">${anime.title}</h3>
+                    <p class="text-[10px] text-gray-500 font-black uppercase mt-1 tracking-widest">${anime.type || "Anime"}</p>
+                </div>
             </div>
-            <div class="info">
-              <h3 class="title">${anime.title}</h3>
-              <p class="type">${anime.type || "Anime"}</p>
-            </div>
-          </div>
         </a>
-      `
+      `,
         )
         .join("");
     }
@@ -79,69 +113,3 @@ export const prerender = true;
 
   renderFavorites();
 </script>
-
-<style>
-  .section {
-    padding-top: 3rem;
-    padding-bottom: 6rem;
-  }
-
-  .page-header {
-    margin-bottom: 3rem;
-  }
-
-  .page-title {
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    letter-spacing: -1px;
-  }
-
-  .icon-heart {
-    color: #f43f5e;
-  }
-
-  .page-desc {
-    color: var(--color-text-muted);
-    font-size: 1.1rem;
-  }
-
-  .empty-state {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 6rem 2rem;
-  }
-
-  .icon-bg {
-    width: 96px;
-    height: 96px;
-    background: rgba(244, 63, 94, 0.1);
-    color: #f43f5e;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
-
-  h2 {
-    font-size: 1.75rem;
-    font-weight: 800;
-  }
-
-  .loading-placeholder {
-    padding: 4rem;
-    text-align: center;
-    color: var(--color-text-muted);
-  }
-
-  .hidden {
-    display: none !important;
-  }
-</style>

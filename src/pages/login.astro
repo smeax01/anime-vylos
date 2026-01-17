@@ -1,100 +1,132 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import {
-  User,
-  LogIn,
-  Mail,
-  Lock,
-  Github,
-  Chrome,
-  MessageSquare,
-} from "lucide-astro";
+import { LogIn, Mail, Lock, Github, Chrome, MessageSquare } from "lucide-astro";
 
 export const prerender = true;
 ---
 
 <Layout title="Connexion">
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-icon">
+  <section
+    class="bg-gray-50 dark:bg-gray-950 min-h-screen flex items-center justify-center p-4"
+  >
+    <div
+      class="w-full max-w-md bg-white rounded-2xl shadow-xl dark:border dark:bg-gray-900 dark:border-gray-800 p-8 space-y-6"
+    >
+      <div class="text-center space-y-2">
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-500 rounded-2xl mb-4"
+        >
           <LogIn size={32} />
         </div>
-        <h1>Bon retour !</h1>
-        <p>Connectez-vous pour continuer l'aventure</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Bon retour !
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400">
+          Connectez-vous pour continuer l'aventure sur Yvlos
+        </p>
       </div>
 
-      <form id="login-form" class="auth-form">
-        <div class="input-group">
-          <label for="email">Email</label>
-          <div class="input-wrapper">
-            <Mail size={18} class="field-icon" />
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label
+            for="email"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Email</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none"
+            >
+              <Mail size={18} class="text-gray-500 dark:text-gray-400" />
+            </div>
             <input
               type="email"
               id="email"
               name="email"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-3 dark:bg-gray-800 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="votre@email.com"
               required
             />
           </div>
         </div>
-
-        <div class="input-group">
-          <label for="password">Mot de passe</label>
-          <div class="input-wrapper">
-            <Lock size={18} class="field-icon" />
+        <div>
+          <label
+            for="password"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Mot de passe</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none"
+            >
+              <Lock size={18} class="text-gray-500 dark:text-gray-400" />
+            </div>
             <input
               type="password"
               id="password"
               name="password"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-3 dark:bg-gray-800 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="••••••••"
               required
             />
           </div>
         </div>
 
-        <button type="submit" class="auth-btn"> Se connecter </button>
+        <button
+          type="submit"
+          class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-bold rounded-xl text-sm px-5 py-3 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-all"
+        >
+          Se connecter
+        </button>
       </form>
 
-      <div class="divider">
-        <span>OU</span>
+      <div class="flex items-center my-6">
+        <div class="flex-grow border-t border-gray-200 dark:border-gray-800">
+        </div>
+        <span
+          class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase tracking-widest"
+          >OU</span
+        >
+        <div class="flex-grow border-t border-gray-200 dark:border-gray-800">
+        </div>
       </div>
 
-      <div class="social-login">
+      <div class="grid grid-cols-3 gap-3">
         <button
-          class="social-btn discord"
+          class="flex items-center justify-center p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onclick="alert('Bientôt disponible !')"
         >
-          <MessageSquare size={20} />
-          Discord
+          <MessageSquare size={20} class="text-[#5865F2]" />
         </button>
         <button
-          class="social-btn google"
+          class="flex items-center justify-center p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onclick="alert('Bientôt disponible !')"
         >
-          <Chrome size={20} />
-          Google
+          <Chrome size={20} class="text-[#EA4335]" />
         </button>
         <button
-          class="social-btn github"
+          class="flex items-center justify-center p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           onclick="alert('Bientôt disponible !')"
         >
-          <Github size={20} />
-          GitHub
+          <Github size={20} class="dark:text-white" />
         </button>
       </div>
 
-      <div class="auth-footer">
-        Pas encore de compte ? <a href="/register">S'inscrire</a>
-      </div>
+      <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+        Pas encore de compte ? <a
+          href="/register"
+          class="font-bold text-blue-600 hover:underline dark:text-blue-500"
+          >S'inscrire</a
+        >
+      </p>
     </div>
-  </div>
+  </section>
 </Layout>
 
 <script>
   const form = document.getElementById("login-form") as HTMLFormElement;
 
-  form?.addEventListener("submit", async (e) => {
+  form?.addEventListener("submit", async (e: Event) => {
     e.preventDefault();
     const formData = new FormData(form);
     const email = formData.get("email");
@@ -111,7 +143,7 @@ export const prerender = true;
       if (!res.ok) throw new Error(data.error);
 
       localStorage.setItem(
-        "vylos_session",
+        "yvlos_session",
         JSON.stringify({
           ...data.user,
           stats: {
@@ -119,7 +151,7 @@ export const prerender = true;
             completed: 0,
             watchedTime: 0,
           },
-        })
+        }),
       );
 
       window.location.href = "/profile";
@@ -128,170 +160,3 @@ export const prerender = true;
     }
   });
 </script>
-
-<style>
-  .auth-container {
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-  }
-
-  .auth-card {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 3rem;
-    border-radius: 24px;
-    width: 100%;
-    max-width: 450px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  }
-
-  .auth-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .auth-icon {
-    width: 64px;
-    height: 64px;
-    background: var(--color-primary);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    color: white;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-  }
-
-  .auth-header h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-  }
-  .auth-header p {
-    color: var(--color-text-muted);
-    font-size: 0.95rem;
-  }
-
-  .auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .input-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #94a3b8;
-  }
-
-  .input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .field-icon {
-    position: absolute;
-    left: 1rem;
-    color: #475569;
-  }
-
-  .input-wrapper input {
-    width: 100%;
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.85rem 1rem 0.85rem 3rem;
-    border-radius: 12px;
-    color: white;
-    font-size: 1rem;
-    transition: all 0.2;
-  }
-
-  .auth-btn {
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 1rem;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 2rem 0;
-    color: var(--color-text-muted);
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-
-  .divider::before,
-  .divider::after {
-    content: "";
-    flex: 1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .divider span {
-    margin: 0 1rem;
-  }
-
-  .social-login {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .social-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0.85rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.03);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .social-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
-  }
-  .social-btn.discord:hover {
-    border-color: #5865f2;
-    color: #5865f2;
-  }
-
-  .auth-footer {
-    margin-top: 2rem;
-    text-align: center;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-  .auth-footer a {
-    color: var(--color-primary);
-    font-weight: 600;
-  }
-
-  @media (max-width: 480px) {
-    .auth-card {
-      padding: 2rem;
-    }
-  }
-</style>

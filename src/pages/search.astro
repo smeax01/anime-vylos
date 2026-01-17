@@ -1,25 +1,41 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Search as SearchIcon } from "lucide-astro";
+import { Search as SearchIcon, Loader2, Heart } from "lucide-astro";
 ---
 
 <Layout title="Recherche">
-  <div class="container search-page">
-    <div class="search-header">
-      <div class="search-input-wrapper">
-        <SearchIcon class="search-icon" size={20} />
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Rechercher un anime (ex: Naruto)..."
-          autofocus
-        />
+  <div class="max-w-screen-xl mx-auto px-4 py-8 min-h-[80vh] space-y-8">
+    <!-- Search Header -->
+    <div class="relative max-w-2xl mx-auto">
+      <div
+        class="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none"
+      >
+        <SearchIcon class="text-blue-500" size={24} />
       </div>
+      <input
+        type="text"
+        id="search-input"
+        class="block w-full p-4 ps-12 text-lg text-gray-900 border border-gray-200 rounded-2xl bg-white focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:border-gray-800 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-sm"
+        placeholder="Quel anime cherchez-vous ?"
+        autofocus
+      />
     </div>
 
-    <div id="results-grid" class="results-grid">
-      <!-- Results will appear here -->
-      <div class="placeholder-msg">Tapez quelque chose pour commencer...</div>
+    <!-- Results Area -->
+    <div
+      id="results-grid"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+    >
+      <div class="col-span-full py-20 text-center space-y-4">
+        <div
+          class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-3xl text-gray-300 dark:text-gray-700"
+        >
+          <SearchIcon size={40} />
+        </div>
+        <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">
+          Tapez le nom d'un anime pour commencer l'exploration
+        </p>
+      </div>
     </div>
   </div>
 </Layout>
@@ -36,15 +52,27 @@ import { Search as SearchIcon } from "lucide-astro";
 
     if (query.trim().length < 2) {
       if (grid)
-        grid.innerHTML =
-          '<div class="placeholder-msg">Tapez quelque chose pour commencer...</div>';
+        grid.innerHTML = `
+          <div class="col-span-full py-20 text-center space-y-4">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-3xl text-gray-300 dark:text-gray-700">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Tapez le nom d'un anime pour commencer l'exploration</p>
+          </div>
+        `;
       return;
     }
 
     debounceTimer = setTimeout(async () => {
       if (grid)
-        grid.innerHTML =
-          '<div class="loading"><div class="vylos-loader"></div> Recherche...</div>';
+        grid.innerHTML = `
+            <div class="col-span-full py-20 text-center space-y-4">
+                <div class="inline-flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 font-medium">Recherche en cours...</p>
+            </div>
+        `;
 
       try {
         const queryGraphQL = `
@@ -77,115 +105,45 @@ import { Search as SearchIcon } from "lucide-astro";
           grid.innerHTML = data.Page.media
             .map(
               (anime: any) => `
-            <a href="/anime/${anime.id}" class="card-link">
-              <div class="anime-card">
-                 <div class="cover-wrapper">
-                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" />
-                    <span class="rating">★ ${anime.averageScore ? anime.averageScore / 10 : "?"}</span>
-                 </div>
-                 <div class="info">
-                   <h3 class="title">${anime.title?.romaji || anime.title?.english}</h3>
-                   <p class="type">${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}</p>
-                 </div>
-              </div>
+            <a href="/anime/${anime.id}" class="group">
+                <div class="relative overflow-hidden rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-xl group-hover:border-blue-500/50">
+                    <div class="aspect-[2/3] w-full relative">
+                        <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <div class="absolute top-2 right-2 bg-gray-900/80 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 text-yellow-400 text-[10px] font-bold border border-gray-700">
+                            ★ ${anime.averageScore ? anime.averageScore / 10 : "?"}
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-500 transition-colors uppercase tracking-tight">${anime.title?.romaji || anime.title?.english}</h3>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mt-1">${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}</p>
+                    </div>
+                </div>
             </a>
-          `
+          `,
             )
             .join("");
         } else if (grid) {
-          grid.innerHTML =
-            '<div class="placeholder-msg">Aucun résultat trouvé pour cette recherche.</div>';
+          grid.innerHTML = `
+            <div class="col-span-full py-20 text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-red-50 dark:bg-red-900/10 rounded-3xl text-red-500">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 font-medium">Aucun résultat trouvé pour "${query}"</p>
+            </div>
+          `;
         }
       } catch (err) {
         console.error(err);
         if (grid)
-          grid.innerHTML =
-            '<div class="error">Une erreur est survenue lors de la recherche.</div>';
+          grid.innerHTML = `
+            <div class="col-span-full py-20 text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-red-50 dark:bg-red-900/10 rounded-3xl text-red-500">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4"/><path d="M12 16h.01"/><path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z"/></svg>
+                </div>
+                <p class="text-gray-500 dark:text-gray-400 font-medium">Une erreur est survenue lors de la recherche.</p>
+            </div>
+          `;
       }
     }, 400);
   });
 </script>
-
-<style>
-  .search-page {
-    padding-top: 2rem;
-    padding-bottom: 6rem;
-    min-height: 80vh;
-  }
-
-  .search-header {
-    margin-bottom: 2.5rem;
-  }
-
-  .search-input-wrapper {
-    position: relative;
-    background: #0f172a;
-    border-radius: 12px;
-    padding: 0.75rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .search-icon {
-    color: var(--color-primary);
-  }
-
-  input {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.1rem;
-    width: 100%;
-    outline: none;
-    font-weight: 500;
-  }
-
-  input::placeholder {
-    color: #475569;
-  }
-
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-
-  @media (min-width: 640px) {
-    .results-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 2rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .results-grid {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
-  }
-
-  .placeholder-msg,
-  .loading,
-  .error {
-    grid-column: 1 / -1;
-    text-align: center;
-    color: var(--color-text-muted);
-    margin-top: 4rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    font-size: 1.1rem;
-  }
-
-  .card-link {
-    text-decoration: none;
-    display: block;
-  }
-
-  .card-link .anime-card {
-    width: 100%;
-  }
-</style>

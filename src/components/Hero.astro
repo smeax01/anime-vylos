@@ -1,8 +1,8 @@
 ---
-import { Play, Info } from "lucide-astro";
+import { Play, Info, Star } from "lucide-astro";
 
 interface Props {
-  id: number; /* Ajout de l'ID */
+  id: number;
   title: string;
   description: string;
   image: string;
@@ -13,238 +13,80 @@ interface Props {
 const { id, title, description, image, genres, rating } = Astro.props;
 ---
 
-<section class="hero">
-  <div class="hero-bg">
-    <img src={image} alt={title} />
-    <div class="hero-overlay"></div>
+<section
+  class="relative h-[85vh] md:h-[75vh] w-full overflow-hidden flex items-end md:items-center"
+>
+  <!-- Background Image -->
+  <div class="absolute inset-0 z-0">
+    <img
+      src={image}
+      alt={title}
+      class="w-full h-full object-cover object-top"
+    />
+    <!-- Overlay -->
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 md:via-gray-900/20 to-transparent"
+    >
+    </div>
   </div>
 
-  <div class="container hero-content">
-    <div class="hero-info">
-      <div class="badges">
-        <span class="badge new-badge">NOUVEAUTÉ</span>
-        {rating && <span class="badge rating-badge">★ {rating / 10}</span>}
+  <!-- Content -->
+  <div class="relative z-10 container mx-auto px-4 pb-12 md:pb-0">
+    <div class="max-w-2xl">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded"
+          >NOUVEAUTÉ</span
+        >
+        {
+          rating && (
+            <span class="bg-gray-800/80 backdrop-blur text-yellow-400 text-xs font-bold px-2.5 py-1 rounded flex items-center gap-1">
+              <Star size={12} fill="currentColor" />
+              {rating / 10}
+            </span>
+          )
+        }
       </div>
-      <h1 class="hero-title">{title}</h1>
-      <div class="hero-genres">
-        {genres.slice(0, 3).map((g) => <span>{g}</span>)}
-      </div>
-      <p class="hero-description" set:html={description} />
 
-      <div class="hero-actions">
-        <a href={`/anime/${id}`} class="btn btn-primary">
-          <Play size={20} fill="currentColor" />
+      <h1
+        class="text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight"
+      >
+        {title}
+      </h1>
+
+      <div class="flex flex-wrap gap-2 mb-6 text-sm font-medium text-gray-300">
+        {
+          genres
+            .slice(0, 3)
+            .map((g) => (
+              <span class="after:content-['•'] last:after:content-[''] after:ml-2">
+                {g}
+              </span>
+            ))
+        }
+      </div>
+
+      <p
+        class="text-gray-300 text-base md:text-lg mb-8 line-clamp-3 max-w-xl"
+        set:html={description}
+      />
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a
+          href={`/anime/${id}`}
+          class="inline-flex items-center justify-center px-6 py-3 text-base font-bold text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transition-colors"
+        >
+          <Play size={20} fill="currentColor" class="mr-2" />
           Regarder
         </a>
-        <a href={`/anime/${id}`} class="btn btn-outline">
-          <Info size={20} />
-          Détails
+        <a
+          href={`/anime/${id}`}
+          class="inline-flex items-center justify-center px-6 py-3 text-base font-bold text-center text-white bg-gray-800/60 backdrop-blur rounded-lg border border-gray-100/20 hover:bg-gray-800/80 focus:ring-4 focus:ring-gray-300 focus:outline-none transition-colors"
+        >
+          <Info size={20} class="mr-2" />
+          Plus d'infos
         </a>
       </div>
     </div>
   </div>
 </section>
-
-<style>
-  .hero {
-    position: relative;
-    height: 85vh;
-    min-height: 600px;
-    max-height: 1000px;
-    display: flex;
-    align-items: flex-end;
-    overflow: hidden;
-    background: #000;
-  }
-
-  @media (min-width: 768px) {
-    .hero {
-      height: 75vh;
-    }
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-  }
-
-  .hero-bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-  }
-
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(2, 6, 23, 0) 0%,
-      rgba(2, 6, 23, 0.4) 40%,
-      rgba(2, 6, 23, 0.8) 70%,
-      #020617 100%
-    );
-  }
-
-  .hero-content {
-    position: relative;
-    z-index: 10;
-    padding-bottom: 4rem; /* More space for the overlap */
-    width: 100%;
-  }
-
-  @media (min-width: 768px) {
-    .hero-content {
-      padding-bottom: 8rem;
-    }
-  }
-
-  .hero-info {
-    max-width: 650px;
-  }
-
-  .badges {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .badge {
-    padding: 0.35rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .new-badge {
-    background: var(--color-primary);
-    color: white;
-  }
-
-  .rating-badge {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(4px);
-    color: white;
-  }
-
-  .hero-title {
-    font-size: 2.25rem;
-    font-weight: 900;
-    line-height: 1.1;
-    margin-bottom: 1rem;
-    letter-spacing: -1px;
-    color: white;
-  }
-
-  @media (min-width: 768px) {
-    .hero-title {
-      font-size: 4rem;
-    }
-  }
-
-  .hero-genres {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-genres span {
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-
-  .hero-description {
-    color: #94a3b8;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  @media (min-width: 768px) {
-    .hero-description {
-      font-size: 1.1rem;
-      -webkit-line-clamp: 3;
-    }
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-  }
-
-  @media (max-width: 480px) {
-    .hero-actions {
-      flex-direction: column;
-    }
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1.75rem;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-
-  .btn-primary {
-  }
-
-  .btn-primary:active {
-    transform: scale(0.95);
-  }
-
-  .btn-primary:hover {
-    background: var(--color-primary-hover);
-  }
-
-  .btn-secondary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background: rgba(30, 41, 59, 0.6); /* Slate 800 transparent */
-    color: white;
-    text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md); /* Square radius */
-    font-size: 0.95rem;
-    font-weight: 500;
-    backdrop-filter: blur(4px);
-  }
-
-  .btn-secondary:hover {
-    background: rgba(30, 41, 59, 1);
-  }
-
-  @media (min-width: 768px) {
-    .hero {
-      height: 80vh;
-      min-height: 600px;
-      align-items: center;
-      padding-bottom: 0;
-    }
-    .hero-title {
-      font-size: 4rem;
-    }
-    .hero-desc {
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
-    }
-  }
-</style>

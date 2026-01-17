@@ -1,31 +1,81 @@
 ---
-import { Play, Plus } from "lucide-astro";
+import { Play, Star } from "lucide-astro";
 
 interface Props {
+  id: number | string;
   image: string;
   title: string;
   type: string;
   rating?: number;
+  tag?: string;
 }
 
-const { image, title, type, rating } = Astro.props;
+const { id, image, title, type, rating, tag } = Astro.props;
 ---
 
-<div class="anime-card">
-  <div class="cover-wrapper">
-    <img src={image} alt={title} loading="lazy" />
-    <div class="overlay-actions">
-      <button class="play-btn">
-        <Play size={24} fill="currentColor" />
-      </button>
-      <button class="add-btn">
-        <Plus size={20} />
-      </button>
+<a href={`/anime/${id}`} class="group block h-full">
+  <div
+    class="flex flex-col h-full bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl group-hover:-translate-y-1"
+  >
+    <!-- Image Container with Fixed Aspect Ratio -->
+    <div class="relative aspect-[2/3] w-full overflow-hidden">
+      <img
+        src={image}
+        alt={title}
+        loading="lazy"
+        class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+      />
+
+      <!-- Gradient Overlay -->
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      >
+      </div>
+
+      <!-- Badge (Tag or Rating) -->
+      <div class="absolute top-2 right-2 flex flex-col gap-2">
+        {
+          tag ? (
+            <div class="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm">
+              {tag}
+            </div>
+          ) : rating ? (
+            <div class="bg-gray-900/80 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 text-yellow-400 text-[10px] font-bold border border-gray-700 shadow-sm">
+              <Star size={10} fill="currentColor" />
+              {(rating / 10).toFixed(1)}
+            </div>
+          ) : null
+        }
+      </div>
+
+      <!-- Play Icon Overlay -->
+      <div
+        class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100"
+      >
+        <div class="bg-blue-600 p-3 rounded-full text-white shadow-xl">
+          <Play size={24} fill="currentColor" />
+        </div>
+      </div>
     </div>
-    {rating && <span class="rating">★ {rating}</span>}
+
+    <!-- Info Container with Min Height for consistency -->
+    <div
+      class="p-3 flex flex-col flex-1 justify-between gap-1 bg-gray-50/50 dark:bg-gray-900/20"
+    >
+      <div>
+        <h3
+          class="text-xs md:text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight group-hover:text-blue-500 transition-colors min-h-[2.5rem]"
+        >
+          {title}
+        </h3>
+      </div>
+      <div class="flex items-center justify-between mt-auto">
+        <p
+          class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest truncate"
+        >
+          {type || "Anime"}
+        </p>
+      </div>
+    </div>
   </div>
-  <div class="info">
-    <h3 class="title">{title}</h3>
-    <p class="type">{type}</p>
-  </div>
-</div>
+</a>

@@ -1,5 +1,13 @@
 ---
-import { Home, Search, Heart, User, LifeBuoy } from "lucide-astro";
+import {
+  Home,
+  Search,
+  Heart,
+  User,
+  LifeBuoy,
+  LogIn,
+  UserPlus,
+} from "lucide-astro";
 import Logo from "./Logo.astro";
 
 const pathname = Astro.url.pathname;
@@ -7,429 +15,294 @@ const isActive = (path: string) =>
   pathname === path || (path !== "/" && pathname.startsWith(path));
 ---
 
-<!-- Desktop Navigation (Top) -->
-<header class="navbar-desktop">
-  <div class="container navbar-content">
-    <div class="nav-left">
-      <Logo />
-      <nav class="nav-links">
-        <a href="/" class={isActive("/") ? "nav-link active" : "nav-link"}
-          >Accueil</a
-        >
-        <a
-          href="/search"
-          class={isActive("/search") ? "nav-link active" : "nav-link"}
-          >Parcourir</a
-        >
-        <a
-          href="/favorites"
-          class={isActive("/favorites") ? "nav-link active" : "nav-link"}
-          >Favoris</a
-        >
-        <a
-          href="/support"
-          class={isActive("/support") ? "nav-link active" : "nav-link"}
-          >Support</a
-        >
-      </nav>
-    </div>
-
-    <div class="nav-right">
-      <form action="/search" method="get" class="search-bar-inline">
-        <Search size={18} class="search-icon" />
-        <input
-          type="text"
-          name="q"
-          placeholder="Rechercher un anime..."
-          class="search-input"
-        />
-      </form>
-
-      <div id="auth-buttons" class="hidden">
-        <a href="/login" class="btn-login">Connexion</a>
-        <a href="/register" class="btn-register">S'inscrire</a>
-      </div>
-
-      <a
-        href="/profile"
-        id="desktop-profile-btn"
-        class={isActive("/profile")
-          ? "profile-link active hidden"
-          : "profile-link hidden"}
-      >
-        <div class="avatar-placeholder">
-          <User size={20} />
-        </div>
-        <img
-          id="desktop-avatar"
-          src=""
-          alt="Avatar"
-          class="avatar-img hidden"
-        />
-      </a>
-    </div>
-  </div>
-</header>
-
-<!-- Mobile Navigation (Bottom) -->
-<nav class="navbar-mobile">
-  <a href="/" class={pathname === "/" ? "mobile-link active" : "mobile-link"}>
-    <Home size={24} />
-    <span>Accueil</span>
-  </a>
-  <a
-    href="/search"
-    class={isActive("/search") ? "mobile-link active" : "mobile-link"}
+<nav
+  class="bg-white border-gray-200 dark:bg-gray-900 border-b dark:border-gray-800 sticky top-0 z-50"
+>
+  <div
+    class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4"
   >
-    <Search size={24} />
-    <span>Rech.</span>
-  </a>
-  <div class="mobile-link-highlight-wrapper">
-    <a href="/" class="mobile-link-highlight">
-      <Logo scale={0.6} />
+    <a href="/" class="flex items-center group">
+      <Logo scale={0.9} />
     </a>
-  </div>
-  <a
-    href="/support"
-    class={isActive("/support") ? "mobile-link active" : "mobile-link"}
-  >
-    <LifeBuoy size={24} />
-    <span>Aide</span>
-  </a>
-
-  <!-- Profile/Login logic handled by script -->
-  <div id="mobile-auth-target" class="mobile-link-container">
-    <a href="/login" id="mobile-login-link" class="mobile-link">
-      <User size={24} />
-      <span>Connexion</span>
-    </a>
-    <a
-      href="/profile"
-      id="mobile-profile-btn"
-      class={isActive("/profile")
-        ? "mobile-link active hidden"
-        : "mobile-link hidden"}
+    <div
+      class="flex md:order-2 items-center space-x-3 md:space-x-0 rtl:space-x-reverse"
     >
-      <div class="avatar-placeholder-mobile">
-        <User size={24} />
+      <!-- Search Button for Mobile -->
+      <button
+        type="button"
+        data-collapse-toggle="navbar-search"
+        aria-controls="navbar-search"
+        aria-expanded="false"
+        class="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 me-1"
+      >
+        <Search size={20} />
+        <span class="sr-only">Rechercher</span>
+      </button>
+
+      <div class="relative hidden md:block mr-4">
+        <div
+          class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"
+        >
+          <Search size={16} class="text-gray-500 dark:text-gray-400" />
+          <span class="sr-only">Icone de recherche</span>
+        </div>
+        <form action="/search" method="get">
+          <input
+            type="text"
+            name="q"
+            id="search-navbar"
+            class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Rechercher..."
+          />
+        </form>
       </div>
-      <img
-        id="mobile-avatar"
-        src=""
-        alt="Avatar"
-        class="avatar-img-mobile hidden"
-      />
-      <span>Profil</span>
-    </a>
+
+      <!-- Auth Buttons (Hidden by default, shown by JS) -->
+      <div id="auth-buttons" class="hidden flex items-center space-x-2">
+        <a
+          href="/login"
+          class="text-gray-800 dark:text-white hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800"
+          >Se connecter</a
+        >
+        <a
+          href="/register"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+          >S'inscrire</a
+        >
+      </div>
+
+      <!-- User Dropdown (Hidden by default, shown by JS) -->
+      <div id="user-menu-container" class="hidden flex items-center">
+        <button
+          type="button"
+          class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+          id="user-menu-button"
+          aria-expanded="false"
+          data-dropdown-toggle="user-dropdown"
+          data-dropdown-placement="bottom"
+        >
+          <span class="sr-only">Ouvrir le menu utilisateur</span>
+          <img
+            id="nav-avatar"
+            class="w-8 h-8 rounded-full object-cover"
+            src="/favicon.svg"
+            alt="user photo"
+          />
+        </button>
+        <!-- Dropdown menu -->
+        <div
+          class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600"
+          id="user-dropdown"
+        >
+          <div class="px-4 py-3">
+            <span
+              id="nav-username"
+              class="block text-sm text-gray-900 dark:text-white"
+              >Chargement...</span
+            >
+            <span
+              id="nav-email"
+              class="block text-sm text-gray-500 truncate dark:text-gray-400"
+              >chargement@yvlos.fr</span
+            >
+          </div>
+          <ul class="py-2" aria-labelledby="user-menu-button">
+            <li>
+              <a
+                href="/profile"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                >Mon Profil</a
+              >
+            </li>
+            <li>
+              <a
+                href="/favorites"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                >Favoris</a
+              >
+            </li>
+            <li>
+              <a
+                href="#"
+                id="nav-logout"
+                class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-red-500 dark:hover:text-white"
+                >Déconnexion</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <button
+        data-collapse-toggle="navbar-search"
+        type="button"
+        class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+        aria-controls="navbar-search"
+        aria-expanded="false"
+      >
+        <span class="sr-only">Ouvrir le menu principal</span>
+        <svg
+          class="w-5 h-5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 17 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M1 1h15M1 7h15M1 13h15"></path>
+        </svg>
+      </button>
+    </div>
+    <div
+      class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
+      id="navbar-search"
+    >
+      <div class="relative mt-3 md:hidden">
+        <div
+          class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"
+        >
+          <Search size={16} class="text-gray-500 dark:text-gray-400" />
+        </div>
+        <form action="/search" method="get">
+          <input
+            type="text"
+            name="q"
+            id="search-navbar-mobile"
+            class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Rechercher..."
+          />
+        </form>
+      </div>
+      <ul
+        class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700"
+      >
+        <li>
+          <a
+            href="/"
+            class={`block py-2 px-3 rounded md:p-0 ${isActive("/") ? "text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500" : "text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"}`}
+            aria-current={isActive("/") ? "page" : undefined}>Accueil</a
+          >
+        </li>
+        <li>
+          <a
+            href="/search"
+            class={`block py-2 px-3 rounded md:p-0 ${isActive("/search") ? "text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500" : "text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"}`}
+            >Parcourir</a
+          >
+        </li>
+        <li>
+          <a
+            href="/favorites"
+            class={`block py-2 px-3 rounded md:p-0 ${isActive("/favorites") ? "text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500" : "text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"}`}
+            >Favoris</a
+          >
+        </li>
+        <li>
+          <a
+            href="/support"
+            class={`block py-2 px-3 rounded md:p-0 ${isActive("/support") ? "text-white bg-blue-700 md:bg-transparent md:text-blue-700 md:dark:text-blue-500" : "text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"}`}
+            >Support</a
+          >
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
+<!-- Mobile Bottom Navigation (only on very small screens, optional but good for app feel) -->
+<div
+  class="fixed bottom-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-900 dark:border-gray-800 md:hidden"
+>
+  <div class="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+    <a
+      href="/"
+      class={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group ${isActive("/") ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}
+    >
+      <Home
+        size={20}
+        class={`mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-500 ${isActive("/") ? "text-blue-600" : ""}`}
+      />
+      <span class="text-xs">Accueil</span>
+    </a>
+    <a
+      href="/search"
+      class={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group ${isActive("/search") ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}
+    >
+      <Search
+        size={20}
+        class={`mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-500 ${isActive("/search") ? "text-blue-600" : ""}`}
+      />
+      <span class="text-xs">Parcourir</span>
+    </a>
+    <a
+      href="/favorites"
+      class={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group ${isActive("/favorites") ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}
+    >
+      <Heart
+        size={20}
+        class={`mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-500 ${isActive("/favorites") ? "text-blue-600" : ""}`}
+      />
+      <span class="text-xs">Favoris</span>
+    </a>
+    <a
+      href="/profile"
+      id="mobile-profile-tab"
+      class={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group ${isActive("/profile") ? "text-blue-600 dark:text-blue-500" : "text-gray-500 dark:text-gray-400"}`}
+    >
+      <User
+        size={20}
+        class={`mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-500 ${isActive("/profile") ? "text-blue-600" : ""}`}
+      />
+      <span class="text-xs">Profil</span>
+    </a>
+  </div>
+</div>
+
 <script>
   function updateNavbar() {
-    const sessionStr = localStorage.getItem("vylos_session");
-
-    // Desktop elements
+    const sessionStr = localStorage.getItem("yvlos_session");
     const authButtons = document.getElementById("auth-buttons");
-    const profileBtn = document.getElementById("desktop-profile-btn");
-    const desktopAvatar = document.getElementById(
-      "desktop-avatar"
-    ) as HTMLImageElement;
-    const desktopPlaceholder = document.querySelector(
-      "#desktop-profile-btn .avatar-placeholder"
-    );
-
-    // Mobile elements
-    const mobileLogin = document.getElementById("mobile-login-link");
-    const mobileProfile = document.getElementById("mobile-profile-btn");
-    const mobileAvatar = document.getElementById(
-      "mobile-avatar"
-    ) as HTMLImageElement;
-    const mobilePlaceholder = document.querySelector(
-      "#mobile-profile-btn .avatar-placeholder-mobile"
-    );
+    const userMenuContainer = document.getElementById("user-menu-container");
+    const navAvatar = document.getElementById("nav-avatar") as HTMLImageElement;
+    const navUsername = document.getElementById("nav-username");
+    const navEmail = document.getElementById("nav-email");
+    const navLogout = document.getElementById("nav-logout");
 
     if (sessionStr) {
-      const user = JSON.parse(sessionStr);
+      try {
+        const user = JSON.parse(sessionStr);
+        authButtons?.classList.add("hidden");
+        userMenuContainer?.classList.remove("hidden");
 
-      // Desktop
-      authButtons?.classList.add("hidden");
-      profileBtn?.classList.remove("hidden");
-      if (desktopAvatar && user.avatar) {
-        desktopAvatar.src = user.avatar;
-        desktopAvatar.classList.remove("hidden");
-        desktopPlaceholder?.classList.add("hidden");
-      }
-
-      // Mobile
-      mobileLogin?.classList.add("hidden");
-      mobileProfile?.classList.remove("hidden");
-      if (mobileAvatar && user.avatar) {
-        mobileAvatar.src = user.avatar;
-        mobileAvatar.classList.remove("hidden");
-        mobilePlaceholder?.classList.add("hidden");
+        if (navAvatar && user.avatar) {
+          navAvatar.src = user.avatar;
+        }
+        if (navUsername) navUsername.innerText = user.username || "Utilisateur";
+        if (navEmail) navEmail.innerText = user.email || "";
+      } catch (e) {
+        console.error("Session parse error", e);
+        localStorage.removeItem("yvlos_session");
       }
     } else {
-      // Not logged in
       authButtons?.classList.remove("hidden");
-      profileBtn?.classList.add("hidden");
-      mobileLogin?.classList.remove("hidden");
-      mobileProfile?.classList.add("hidden");
+      authButtons?.classList.add("flex");
+      userMenuContainer?.classList.add("hidden");
     }
+
+    navLogout?.addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("yvlos_session");
+      window.location.href = "/";
+    });
   }
 
   // Run on mount
   updateNavbar();
 
-  // Listen for storage changes (e.g. login/logout)
+  // Listen for storage changes
   window.addEventListener("storage", updateNavbar);
 </script>
-
-<style>
-  .navbar-desktop {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--nav-height-desktop);
-    background: rgba(2, 6, 23, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 1000;
-  }
-
-  .navbar-mobile {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: var(--nav-height-mobile);
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .mobile-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    color: var(--color-text-muted);
-    font-size: 11px;
-    font-weight: 600;
-    width: 20%;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-
-  .mobile-link.active {
-    color: var(--color-primary);
-  }
-
-  .mobile-link-highlight-wrapper {
-    position: relative;
-    top: -15px;
-    width: 20%;
-    display: flex;
-    justify-content: center;
-  }
-
-  .mobile-link-highlight {
-    width: 56px;
-    height: 56px;
-    background: var(--color-primary);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
-    border: 4px solid #020617;
-    transform: rotate(45deg);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  .mobile-link-highlight:active {
-    transform: rotate(45deg) scale(0.9);
-  }
-
-  .mobile-link-highlight :global(.logo) {
-    transform: rotate(-45deg) !important;
-    margin-left: -2px;
-  }
-
-  @media (min-width: 768px) {
-    .navbar-desktop {
-      display: block;
-    }
-    .navbar-mobile {
-      display: none;
-    }
-  }
-
-  .navbar-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-  }
-
-  .nav-left {
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-  }
-  .nav-links {
-    display: flex;
-    gap: 2rem;
-  }
-
-  .nav-link {
-    color: var(--color-text-muted);
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: color 0.2s;
-    position: relative;
-  }
-
-  .nav-link:hover,
-  .nav-link.active {
-    color: white;
-  }
-
-  .nav-link.active::after {
-    content: "";
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--color-primary);
-    border-radius: 3px;
-  }
-
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-  }
-
-  #auth-buttons {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .btn-login {
-    color: white;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  .btn-register {
-    background: var(--color-primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-    transition: all 0.2s;
-  }
-
-  .btn-register:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.5);
-  }
-
-  .search-bar-inline {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 280px;
-    transition: all 0.2s;
-  }
-
-  .search-bar-inline:focus-within {
-    border-color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.08);
-    width: 320px;
-  }
-
-  .search-icon {
-    color: #64748b;
-  }
-  .search-input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: white;
-    font-size: 0.9rem;
-    width: 100%;
-  }
-
-  .profile-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    position: relative;
-  }
-
-  .avatar-placeholder,
-  .avatar-placeholder-mobile {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s;
-  }
-
-  .avatar-placeholder-mobile {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-  }
-
-  .profile-link:hover .avatar-placeholder {
-    background: var(--color-primary);
-    color: white;
-    transform: scale(1.05);
-  }
-
-  .avatar-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    object-fit: cover;
-    border: 2px solid var(--color-primary);
-  }
-
-  .avatar-img-mobile {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    object-fit: cover;
-    border: 1.5px solid var(--color-primary);
-  }
-
-  .hidden {
-    display: none !important;
-  }
-</style>

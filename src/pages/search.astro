@@ -17,7 +17,7 @@ import { Search as SearchIcon } from "lucide-astro";
       <input
         type="text"
         id="search-input"
-        class="block w-full p-5 ps-14 text-lg text-gray-900 border border-gray-200 rounded-3xl bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:bg-gray-950 dark:border-gray-800 dark:placeholder-gray-400 dark:text-white shadow-2xl transition-all"
+        class="block w-full p-4 ps-14 text-lg text-gray-900 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-gray-950 dark:border-gray-800 dark:placeholder-gray-400 dark:text-white transition-all"
         placeholder="Rechercher un anime..."
         autofocus
       />
@@ -26,22 +26,17 @@ import { Search as SearchIcon } from "lucide-astro";
     <!-- Results Area -->
     <div
       id="results-grid"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
     >
-      <div class="col-span-full py-24 text-center space-y-6">
+      <div class="col-span-full py-24 text-center space-y-4">
         <div
-          class="inline-flex items-center justify-center w-24 h-24 bg-gray-50 dark:bg-gray-900 rounded-[2.5rem] text-gray-300 dark:text-gray-700"
+          class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl text-gray-300 dark:text-gray-700"
         >
-          <SearchIcon size={48} />
+          <SearchIcon size={40} />
         </div>
-        <div class="space-y-2">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            Prêt à regarder ?
-          </h2>
-          <p class="text-gray-500 dark:text-gray-400 font-medium">
-            Tapez le nom d'un anime pour explorer la bibliothèque
-          </p>
-        </div>
+        <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">
+          Tapez le nom d'un anime pour explorer la bibliothèque
+        </p>
       </div>
     </div>
   </div>
@@ -60,14 +55,11 @@ import { Search as SearchIcon } from "lucide-astro";
     if (query.trim().length < 2) {
       if (grid)
         grid.innerHTML = `
-        <div class="col-span-full py-24 text-center space-y-6">
-            <div class="inline-flex items-center justify-center w-24 h-24 bg-gray-50 dark:bg-gray-900 rounded-[2.5rem] text-gray-300 dark:text-gray-700">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div class="col-span-full py-24 text-center space-y-4">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl text-gray-300 dark:text-gray-700">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </div>
-            <div class="space-y-2">
-              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Prêt à regarder ?</h2>
-              <p class="text-gray-500 dark:text-gray-400 font-medium">Tapez le nom d'un anime pour explorer la bibliothèque</p>
-            </div>
+            <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Tapez le nom d'un anime pour explorer la bibliothèque</p>
         </div>
       `;
       return;
@@ -77,23 +69,20 @@ import { Search as SearchIcon } from "lucide-astro";
       if (grid)
         grid.innerHTML = `
             <div class="col-span-full py-24 text-center space-y-4">
-                <div class="inline-flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                </div>
-                <p class="text-gray-500 dark:text-gray-400 font-medium">Exploration de la base de données...</p>
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+                <p class="text-gray-500 dark:text-gray-400 font-medium">Recherche en cours...</p>
             </div>
       `;
 
       try {
         const queryGraphQL = `
           query ($search: String) {
-            Page(perPage: 30) {
+            Page(perPage: 36) {
               media(search: $search, type: ANIME, sort: POPULARITY_DESC) {
                 id
                 title { romaji english }
                 coverImage { large }
                 format
-                genres
               }
             }
           }
@@ -115,24 +104,24 @@ import { Search as SearchIcon } from "lucide-astro";
             .map(
               (anime: any) => `
             <a href="/anime/${anime.id}" class="group block w-full">
-                <div class="relative aspect-[2/3] w-full rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800/50 transition-colors bg-white dark:bg-gray-950">
-                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105" />
+                <div class="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <img src="${anime.coverImage.large}" loading="lazy" alt="${anime.title.romaji}" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
                 </div>
-                <div class="mt-3 px-1">
-                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight min-h-[2.5rem] transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
-                    <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1">${anime.format || "TV"} • ${anime.genres?.[0] || "Anime"}</p>
+                <div class="mt-2">
+                    <h3 class="text-xs md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-500 transition-colors">${anime.title?.romaji || anime.title?.english}</h3>
+                    <p class="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5">${anime.format === "TV" ? "Série" : anime.format || "Anime"}</p>
                 </div>
             </a>
           `,
             )
             .join("");
         } else if (grid) {
-          grid.innerHTML = `<div class="col-span-full py-24 text-center text-gray-500 font-medium">Désolé, nous n'avons rien trouvé pour "${query}"</div>`;
+          grid.innerHTML = `<div class="col-span-full py-24 text-center text-gray-500 font-medium">Aucun résultat trouvé pour "${query}"</div>`;
         }
       } catch (err) {
         console.error(err);
         if (grid)
-          grid.innerHTML = `<div class="col-span-full py-24 text-center text-red-500 font-medium">Oups ! Une erreur réseau est survenue.</div>`;
+          grid.innerHTML = `<div class="col-span-full py-24 text-center text-red-500 font-medium">Une erreur est survenue lors de la recherche.</div>`;
       }
     }, 400);
   });
